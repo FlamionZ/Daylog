@@ -19,8 +19,10 @@ import {
   Mail,
   FileText,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { AISettingsCard } from './ai-settings-card';
+import { signOut } from '@/features/auth/actions/auth-actions';
 
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
@@ -264,6 +266,44 @@ export function SettingsView({ initialData }: SettingsViewProps) {
                 </button>
               </CardFooter>
             </form>
+          </Card>
+
+          {/* Sesi & Autentikasi */}
+          <Card className="mt-4 rounded-[24px] border border-border bg-card shadow-2xs overflow-hidden">
+            <CardHeader className="border-b border-border p-6">
+              <CardTitle className="text-lg font-extrabold text-foreground">Sesi & Autentikasi</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Kelola sesi aktif kamu pada perangkat ini.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold text-foreground">Keluar dari Akun</p>
+                <p className="text-xs text-muted-foreground">Akhiri sesi aktif di peramban ini dan kembali ke halaman login.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  startTransition(async () => {
+                    await signOut();
+                  });
+                }}
+                disabled={isPending}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white px-5 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="size-3.5" />
+                    <span>Keluar dari Akun</span>
+                  </>
+                )}
+              </button>
+            </CardContent>
           </Card>
         </TabsContent>
 
