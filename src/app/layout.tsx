@@ -72,10 +72,12 @@ export default function RootLayout({
             <InstallBanner />
           </PwaRegister>
           <Toaster
-            position="bottom-right"
+            position="top-center"
+            richColors
+            closeButton
             toastOptions={{
-              duration: 4000,
-              className: 'font-sans',
+              duration: 4500,
+              className: 'font-sans text-xs shadow-lg',
             }}
           />
         </Providers>

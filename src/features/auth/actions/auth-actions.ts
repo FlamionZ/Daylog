@@ -71,7 +71,11 @@ export async function signInWithOtp(
 
   try {
     const supabase = await createClient();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const headerList = await import('next/headers').then((m) => m.headers());
+    const host = headerList.get('x-forwarded-host') || headerList.get('host');
+    const proto = headerList.get('x-forwarded-proto') || 'https';
+    const appUrl = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+
     const { error } = await supabase.auth.signInWithOtp({
       email: parsed.data.email,
       options: {
@@ -98,6 +102,45 @@ export async function signInWithOtp(
     };
   } catch (err: unknown) {
     console.error('Error in signInWithOtp:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Terjadi kesalahan pada server autentikasi.',
+    };
+  }
+}
+
+export async function resetPasswordForEmail(
+  email: string,
+): Promise<AuthActionResult> {
+  const parsed = loginWithOtpSchema.safeParse({ email });
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message || 'Email tidak valid',
+    };
+  }
+
+  try {
+    const supabase = await createClient();
+    const headerList = await import('next/headers').then((m) => m.headers());
+    const host = headerList.get('x-forwarded-host') || headerList.get('host');
+    const proto = headerList.get('x-forwarded-proto') || 'https';
+    const appUrl = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${appUrl}/callback?next=/settings`,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return {
+      success: true,
+      message: 'Tautan pemulihan kata sandi telah dikirim ke email kamu.',
+    };
+  } catch (err: unknown) {
+    console.error('Error in resetPasswordForEmail:', err);
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Terjadi kesalahan pada server autentikasi.',

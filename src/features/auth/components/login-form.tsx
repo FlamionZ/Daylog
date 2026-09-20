@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Loader2, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,7 +25,15 @@ import {
 
 export function LoginForm() {
   const [activeTab, setActiveTab] = React.useState<'password' | 'signup' | 'otp'>('password');
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
+
+  const handleTabChange = (val: 'password' | 'signup' | 'otp') => {
+    setFormError(null);
+    setFormSuccess(null);
+    setActiveTab(val);
+  };
 
   // Password login form
   const passwordForm = useForm<LoginWithPasswordInput>({
@@ -46,32 +54,45 @@ export function LoginForm() {
   });
 
   const handlePasswordLogin = (data: LoginWithPasswordInput) => {
+    setFormError(null);
+    setFormSuccess(null);
     startTransition(async () => {
       const result = await signInWithPassword(data);
       if (result && !result.success && result.error) {
+        setFormError(result.error);
         toast.error(result.error);
       }
     });
   };
 
   const handleSignUp = (data: SignUpInput) => {
+    setFormError(null);
+    setFormSuccess(null);
     startTransition(async () => {
       const result = await signUpWithPassword(data);
       if (result.success) {
-        toast.success(result.message || 'Pendaftaran berhasil!');
+        const msg = result.message || 'Pendaftaran berhasil! Silakan masuk.';
+        setFormSuccess(msg);
+        toast.success(msg);
         setActiveTab('password');
       } else if (result.error) {
+        setFormError(result.error);
         toast.error(result.error);
       }
     });
   };
 
   const handleOtpLogin = (data: LoginWithOtpInput) => {
+    setFormError(null);
+    setFormSuccess(null);
     startTransition(async () => {
       const result = await signInWithOtp(data);
       if (result.success) {
-        toast.success(result.message || 'Tautan login terkirim!');
+        const msg = result.message || 'Tautan login terkirim ke email kamu!';
+        setFormSuccess(msg);
+        toast.success(msg);
       } else if (result.error) {
+        setFormError(result.error);
         toast.error(result.error);
       }
     });
@@ -81,7 +102,7 @@ export function LoginForm() {
     <div className="w-full">
       <Tabs
         value={activeTab}
-        onValueChange={(val) => setActiveTab(val as 'password' | 'signup' | 'otp')}
+        onValueChange={(val) => handleTabChange(val as 'password' | 'signup' | 'otp')}
       >
         <TabsList className="grid w-full grid-cols-3 rounded-full border border-border/70 bg-secondary/50 p-1 mb-6 h-11">
           <TabsTrigger
@@ -107,7 +128,10 @@ export function LoginForm() {
         {/* 1. Masuk (Password) */}
         <TabsContent value="password">
           <form
-            onSubmit={passwordForm.handleSubmit(handlePasswordLogin)}
+            onSubmit={passwordForm.handleSubmit(handlePasswordLogin, (errors) => {
+              const first = Object.values(errors)[0]?.message;
+              if (first) setFormError(first);
+            })}
             className="space-y-4"
           >
             <div className="space-y-2">
@@ -137,6 +161,13 @@ export function LoginForm() {
                 <Label htmlFor="login-password" className="text-xs font-semibold text-foreground/80">
                   Kata Sandi
                 </Label>
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('otp')}
+                  className="text-[11px] font-medium text-primary hover:underline cursor-pointer"
+                >
+                  Lupa kata sandi?
+                </button>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
@@ -155,6 +186,20 @@ export function LoginForm() {
                 </p>
               )}
             </div>
+
+            {formError && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-destructive/25 bg-destructive/10 p-3.5 text-xs text-destructive animate-in fade-in duration-200">
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium leading-relaxed">{formError}</div>
+              </div>
+            )}
+
+            {formSuccess && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 animate-in fade-in duration-200">
+                <CheckCircle2 className="size-4 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium leading-relaxed">{formSuccess}</div>
+              </div>
+            )}
 
             <Button
               type="submit"
@@ -179,7 +224,10 @@ export function LoginForm() {
         {/* 2. Daftar (Sign Up) */}
         <TabsContent value="signup">
           <form
-            onSubmit={signUpForm.handleSubmit(handleSignUp)}
+            onSubmit={signUpForm.handleSubmit(handleSignUp, (errors) => {
+              const first = Object.values(errors)[0]?.message;
+              if (first) setFormError(first);
+            })}
             className="space-y-4"
           >
             <div className="space-y-2">
@@ -247,6 +295,20 @@ export function LoginForm() {
               )}
             </div>
 
+            {formError && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-destructive/25 bg-destructive/10 p-3.5 text-xs text-destructive animate-in fade-in duration-200">
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium leading-relaxed">{formError}</div>
+              </div>
+            )}
+
+            {formSuccess && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 animate-in fade-in duration-200">
+                <CheckCircle2 className="size-4 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium leading-relaxed">{formSuccess}</div>
+              </div>
+            )}
+
             <Button
               type="submit"
               className="w-full h-10 rounded-full bg-primary text-primary-foreground font-bold text-xs py-2.5 shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all cursor-pointer"
@@ -270,7 +332,10 @@ export function LoginForm() {
         {/* 3. Magic Link */}
         <TabsContent value="otp">
           <form
-            onSubmit={otpForm.handleSubmit(handleOtpLogin)}
+            onSubmit={otpForm.handleSubmit(handleOtpLogin, (errors) => {
+              const first = Object.values(errors)[0]?.message;
+              if (first) setFormError(first);
+            })}
             className="space-y-4"
           >
             <div className="space-y-2">
@@ -298,6 +363,20 @@ export function LoginForm() {
             <p className="text-xs text-muted-foreground leading-relaxed">
               Kami akan mengirimkan tautan sekali pakai ke email kamu untuk masuk langsung tanpa kata sandi.
             </p>
+
+            {formError && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-destructive/25 bg-destructive/10 p-3.5 text-xs text-destructive animate-in fade-in duration-200">
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium leading-relaxed">{formError}</div>
+              </div>
+            )}
+
+            {formSuccess && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 animate-in fade-in duration-200">
+                <CheckCircle2 className="size-4 shrink-0 mt-0.5" />
+                <div className="flex-1 font-medium leading-relaxed">{formSuccess}</div>
+              </div>
+            )}
 
             <Button
               type="submit"
