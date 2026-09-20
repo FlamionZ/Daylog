@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background Warm Parchment -->
+  <rect width="512" height="512" rx="112" fill="#F7F4EE"/>
+  
+  <!-- 2x2 Grid of Daylog Squares -->
+  <!-- Top Left -->
+  <rect x="110" y="110" width="130" height="130" rx="36" fill="#18181B"/>
+  
+  <!-- Top Right -->
+  <rect x="272" y="110" width="130" height="130" rx="36" fill="#18181B"/>
+  
+  <!-- Bottom Left -->
+  <rect x="110" y="272" width="130" height="130" rx="36" fill="#18181B"/>
+  
+  <!-- Bottom Right (Royal Blue Accent) -->
+  <rect x="272" y="272" width="130" height="130" rx="36" fill="#6284EB"/>
+</svg>
