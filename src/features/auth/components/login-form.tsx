@@ -78,15 +78,30 @@ export function LoginForm() {
   };
 
   return (
-    <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--surface))] p-6 shadow-sm">
+    <div className="w-full">
       <Tabs
         value={activeTab}
         onValueChange={(val) => setActiveTab(val as 'password' | 'signup' | 'otp')}
       >
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="password">Masuk</TabsTrigger>
-          <TabsTrigger value="signup">Daftar</TabsTrigger>
-          <TabsTrigger value="otp">Magic Link</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 rounded-full border border-border/70 bg-secondary/50 p-1 mb-6 h-11">
+          <TabsTrigger
+            value="password"
+            className="rounded-full text-xs font-semibold py-2 transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+          >
+            Kata Sandi
+          </TabsTrigger>
+          <TabsTrigger
+            value="signup"
+            className="rounded-full text-xs font-semibold py-2 transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+          >
+            Daftar
+          </TabsTrigger>
+          <TabsTrigger
+            value="otp"
+            className="rounded-full text-xs font-semibold py-2 transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+          >
+            Magic Link
+          </TabsTrigger>
         </TabsList>
 
         {/* 1. Masuk (Password) */}
@@ -96,14 +111,16 @@ export function LoginForm() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="login-email">Email</Label>
+              <Label htmlFor="login-email" className="text-xs font-semibold text-foreground/80">
+                Email
+              </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-2.5 size-4 text-[hsl(var(--muted))]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="login-email"
                   type="email"
                   placeholder="nama@email.com"
-                  className="pl-9"
+                  className="h-10 rounded-full border border-border/80 bg-secondary/30 pl-10 pr-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
                   disabled={isPending}
                   {...passwordForm.register('email')}
                 />
@@ -116,14 +133,18 @@ export function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="login-password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="login-password" className="text-xs font-semibold text-foreground/80">
+                  Kata Sandi
+                </Label>
+              </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-2.5 size-4 text-[hsl(var(--muted))]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="login-password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-9"
+                  className="h-10 rounded-full border border-border/80 bg-secondary/30 pl-10 pr-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
                   disabled={isPending}
                   {...passwordForm.register('password')}
                 />
@@ -135,7 +156,11 @@ export function LoginForm() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button
+              type="submit"
+              className="w-full h-10 rounded-full bg-primary text-primary-foreground font-bold text-xs py-2.5 shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all cursor-pointer"
+              disabled={isPending}
+            >
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
@@ -143,7 +168,7 @@ export function LoginForm() {
                 </>
               ) : (
                 <>
-                  Masuk ke Akun
+                  Masuk dengan Email
                   <ArrowRight className="ml-2 size-4" />
                 </>
               )}
@@ -158,13 +183,15 @@ export function LoginForm() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="signup-name">Nama Lengkap</Label>
+              <Label htmlFor="signup-name" className="text-xs font-semibold text-foreground/80">
+                Nama Lengkap
+              </Label>
               <div className="relative">
-                <User className="absolute left-3 top-2.5 size-4 text-[hsl(var(--muted))]" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="signup-name"
                   placeholder="Rakha Pratama"
-                  className="pl-9"
+                  className="h-10 rounded-full border border-border/80 bg-secondary/30 pl-10 pr-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
                   disabled={isPending}
                   {...signUpForm.register('fullName')}
                 />
@@ -177,14 +204,16 @@ export function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="signup-email">Email</Label>
+              <Label htmlFor="signup-email" className="text-xs font-semibold text-foreground/80">
+                Email
+              </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-2.5 size-4 text-[hsl(var(--muted))]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="signup-email"
                   type="email"
                   placeholder="nama@email.com"
-                  className="pl-9"
+                  className="h-10 rounded-full border border-border/80 bg-secondary/30 pl-10 pr-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
                   disabled={isPending}
                   {...signUpForm.register('email')}
                 />
@@ -197,14 +226,16 @@ export function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="signup-password">Password</Label>
+              <Label htmlFor="signup-password" className="text-xs font-semibold text-foreground/80">
+                Kata Sandi
+              </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-2.5 size-4 text-[hsl(var(--muted))]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="signup-password"
                   type="password"
                   placeholder="Minimal 6 karakter"
-                  className="pl-9"
+                  className="h-10 rounded-full border border-border/80 bg-secondary/30 pl-10 pr-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
                   disabled={isPending}
                   {...signUpForm.register('password')}
                 />
@@ -216,7 +247,11 @@ export function LoginForm() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button
+              type="submit"
+              className="w-full h-10 rounded-full bg-primary text-primary-foreground font-bold text-xs py-2.5 shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all cursor-pointer"
+              disabled={isPending}
+            >
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
@@ -239,14 +274,16 @@ export function LoginForm() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="otp-email">Email</Label>
+              <Label htmlFor="otp-email" className="text-xs font-semibold text-foreground/80">
+                Email
+              </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-2.5 size-4 text-[hsl(var(--muted))]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="otp-email"
                   type="email"
                   placeholder="nama@email.com"
-                  className="pl-9"
+                  className="h-10 rounded-full border border-border/80 bg-secondary/30 pl-10 pr-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
                   disabled={isPending}
                   {...otpForm.register('email')}
                 />
@@ -258,11 +295,15 @@ export function LoginForm() {
               )}
             </div>
 
-            <p className="text-xs text-[hsl(var(--muted))]">
-              Kami akan mengirimkan tautan sekali pakai ke email kamu untuk masuk tanpa kata sandi.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Kami akan mengirimkan tautan sekali pakai ke email kamu untuk masuk langsung tanpa kata sandi.
             </p>
 
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button
+              type="submit"
+              className="w-full h-10 rounded-full bg-primary text-primary-foreground font-bold text-xs py-2.5 shadow-xs hover:bg-primary/90 active:scale-[0.98] transition-all cursor-pointer"
+              disabled={isPending}
+            >
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
