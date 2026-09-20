@@ -58,7 +58,7 @@ export function InstallBanner() {
             {/* Copy */}
             <div className="min-w-0 flex-1">
               <h4 className="text-sm font-bold tracking-tight text-foreground">
-                Pasang MagangHub di HP
+                Pasang Daylog di HP
               </h4>
               <p className="text-xs text-muted-foreground truncate">
                 Akses cepat dari homescreen &amp; bisa offline
@@ -96,7 +96,7 @@ export function InstallBanner() {
               <Smartphone className="size-5" />
             </div>
             <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
-              Pasang MagangHub di {isIOS ? 'iPhone / iPad' : 'HP Kamu'}
+              Pasang Daylog di {isIOS ? 'iPhone / iPad' : 'HP Kamu'}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
               {isIOS
@@ -147,7 +147,7 @@ export function InstallBanner() {
               <div className="text-sm text-muted-foreground">
                 <span>Ketuk </span>
                 <strong className="font-semibold text-foreground">Tambah / Install</strong>
-                <span>. Ikon MagangHub akan muncul di layar utama HP kamu!</span>
+                <span>. Ikon Daylog akan muncul di layar utama HP kamu!</span>
               </div>
             </div>
           </div>
@@ -167,7 +167,7 @@ export function InstallBanner() {
       {installedSuccess && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 bg-[#BCE8D3] dark:bg-[#1A3329] px-4 py-2 text-xs font-bold text-[#163A2B] dark:text-[#34D399] shadow-lg animate-in fade-in duration-200">
           <CheckCircle2 className="size-4" />
-          <span>MagangHub berhasil dipasang di HP!</span>
+          <span>Daylog berhasil dipasang di HP!</span>
         </div>
       )}
     </>
@@ -203,7 +203,7 @@ export function InstallButton({
     <button
       onClick={handleClick}
       className={className}
-      title="Pasang aplikasi MagangHub di ponsel kamu"
+      title="Pasang aplikasi Daylog di ponsel kamu"
     >
       <Smartphone className="size-4 shrink-0" />
       <span>Install Aplikasi</span>

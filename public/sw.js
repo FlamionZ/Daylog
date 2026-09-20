@@ -1,5 +1,5 @@
-// MagangHub PWA Service Worker
-const CACHE_NAME = 'maganghub-cache-v1';
+// Daylog PWA Service Worker
+const CACHE_NAME = 'daylog-cache-v2';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [

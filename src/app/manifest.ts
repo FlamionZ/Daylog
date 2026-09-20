@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'MagangHub — Daylog Internship Companion',
-    short_name: 'MagangHub',
+    name: 'Daylog — Internship Companion',
+    short_name: 'Daylog',
     description:
       'Aplikasi pendamping magang: catat absensi Monev Kemnaker, jurnal harian, tugas, dan asistensi AI Gemini.',
     start_url: '/dashboard',

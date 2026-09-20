@@ -57,7 +57,7 @@ export default function OfflinePage() {
 
       {/* Footer hint */}
       <p className="mt-12 text-xs text-[#8A857D] dark:text-[#6B7280]">
-        MagangHub PWA • Terpasang di perangkat
+        Daylog PWA • Terpasang di perangkat
       </p>
     </div>
   );

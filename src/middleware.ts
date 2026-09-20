@@ -52,25 +52,34 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route),
   );
 
+  // Helper to copy cookies from supabaseResponse to any redirect response
+  const createRedirectResponse = (url: URL) => {
+    const redirectResponse = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    return redirectResponse;
+  };
+
   // Redirect unauthenticated users to login
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    return NextResponse.redirect(url);
+    return createRedirectResponse(url);
   }
 
   // Redirect authenticated users away from login
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+    return createRedirectResponse(url);
   }
 
   // Redirect root to dashboard for authenticated users
   if (user && pathname === '/') {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+    return createRedirectResponse(url);
   }
 
   return supabaseResponse;

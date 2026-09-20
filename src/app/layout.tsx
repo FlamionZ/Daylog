@@ -20,17 +20,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'MagangHub — Internship Companion',
-    template: '%s — MagangHub',
+    default: 'Daylog — Internship Companion',
+    template: '%s — Daylog',
   },
   description:
     'Aplikasi pendamping magang: catat absensi Monev Kemnaker, jurnal harian, tugas, dan asistensi AI Gemini.',
-  applicationName: 'MagangHub',
+  applicationName: 'Daylog',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'MagangHub',
+    title: 'Daylog',
   },
   icons: {
     icon: [

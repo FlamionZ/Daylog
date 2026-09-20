@@ -35,7 +35,7 @@ export default function LoginPage() {
           <div className="mb-6 text-center space-y-2">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider shadow-2xs">
               <span className="size-1.5 rounded-full bg-[#6284EB] dark:bg-[#3B82F6]" />
-              MagangHub Workspace
+              Daylog Workspace
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
               Internship Companion
