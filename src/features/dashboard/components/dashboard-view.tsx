@@ -101,14 +101,21 @@ export function DashboardView({
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'journal_entries' },
+        { event: '*', schema: 'public', table: 'journals' },
         () => {
           router.refresh();
         },
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'weekly_reports' },
+        { event: '*', schema: 'public', table: 'reports' },
+        () => {
+          router.refresh();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'learnings' },
         () => {
           router.refresh();
         },
