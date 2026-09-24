@@ -9,125 +9,37 @@ import {
   ListTodo,
   GraduationCap,
   TrendingUp,
-  ShieldCheck,
-  Zap,
-  ArrowRight,
 } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
 import { JournalAIModal } from './journal-ai-modal';
 import { BlockerAdvisorModal } from './blocker-advisor-modal';
 import { DailyReflectionModal } from './daily-reflection-modal';
 import { TaskExtractionModal } from './task-extraction-modal';
 import { LearningExtractionModal } from './learning-extraction-modal';
 import { todayInJakarta } from '@/lib/date';
-import type { AIUsageStats } from '../actions/ai-actions';
 
-interface AIHubViewProps {
-  initialStats?: AIUsageStats | null;
-}
-
-export function AIHubView({ initialStats }: AIHubViewProps) {
+export function AIHubView() {
   const [journalModalOpen, setJournalModalOpen] = React.useState(false);
   const [blockerModalOpen, setBlockerModalOpen] = React.useState(false);
   const [reflectionModalOpen, setReflectionModalOpen] = React.useState(false);
   const [taskModalOpen, setTaskModalOpen] = React.useState(false);
   const [learningModalOpen, setLearningModalOpen] = React.useState(false);
 
-  const usage = initialStats?.usage;
-  const currentRequests = usage?.currentRequests ?? 0;
-  const limit = usage?.limit ?? 50;
-  const percentage = Math.min(100, Math.round((currentRequests / limit) * 100));
-
   const today = todayInJakarta();
 
   return (
     <div className="space-y-6">
-      {/* 1. Header with Model Telemetry & Fallback Chain */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-2xs">
+          <Sparkles className="size-5.5 stroke-[2.2]" />
+        </div>
         <div>
-          <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-2xs">
-              <Sparkles className="size-5.5 stroke-[2.2]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-                  Asisten AI Copilot
-                </h1>
-                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-extrabold text-primary uppercase tracking-wider">
-                  Gemini Flash
-                </span>
-              </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Copilot pribadi untuk menyusun jurnal Monev Kemnaker, memecahkan kendala teknis, dan refleksi harian.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-start sm:items-end gap-1.5 self-start sm:self-auto">
-          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 shadow-2xs text-xs">
-            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-bold text-foreground font-mono">
-              {initialStats?.model || 'gemini-3.8-flash'}
-            </span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground text-[11px] font-medium">Aktif</span>
-          </div>
-          <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
-            <span>Fallback:</span>
-            <span className="text-foreground font-semibold">3.8 → 3.7 → 3.6 → 3.5 → 3.5L → 3.1L</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Top Bento Row: Daily Quota Telemetry & Privacy Assurance */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="sm:col-span-2 rounded-[28px] border border-border bg-card p-6 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Zap className="size-3.5" />
-              </div>
-              <span className="text-xs font-extrabold text-foreground">Telemetri Kuota Harian</span>
-            </div>
-            <div className="flex items-center gap-2 font-mono text-xs">
-              <span className="font-extrabold text-foreground">{currentRequests}</span>
-              <span className="text-muted-foreground">/ {limit} requests</span>
-              <span className="rounded-full bg-secondary border border-border px-2 py-0.5 text-[10px] font-bold text-foreground">
-                {limit - currentRequests} sisa
-              </span>
-            </div>
-          </div>
-
-          <Progress value={percentage} className="h-2 bg-secondary" />
-
-          <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground pt-1">
-            <span>Reset otomatis pukul 00:00 WIB</span>
-            <span>Total Token: {((usage?.inputTokens ?? 0) + (usage?.outputTokens ?? 0)).toLocaleString('id-ID')}</span>
-          </div>
-        </div>
-
-        {/* Privacy & Redaction Card */}
-        <div className="rounded-[28px] border border-border bg-card p-6 shadow-2xs flex flex-col justify-between space-y-3">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-xs font-extrabold text-foreground">
-              <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Privasi & Sanitasi Data</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              API key, password, token, dan data rahasia otomatis disanitasi menjadi <code className="font-mono text-[10px] bg-secondary border border-border px-1 py-0.5 rounded text-foreground font-bold">[REDACTED]</code> sebelum diproses oleh model Gemini.
-            </p>
-          </div>
-          <div>
-            <Link
-              href="/settings"
-              className="text-[11px] font-bold text-primary hover:underline inline-flex items-center gap-1"
-            >
-              Pengaturan AI & Model
-              <ArrowRight className="size-3" />
-            </Link>
-          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            Asisten AI Copilot
+          </h1>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Copilot pribadi untuk menyusun jurnal Monev Kemnaker, memecahkan kendala teknis, dan refleksi harian.
+          </p>
         </div>
       </div>
 
