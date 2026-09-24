@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { nowInJakarta } from '@/lib/date';
 import {
   taskFormSchema,
   taskLinkSchema,
@@ -120,7 +119,7 @@ export async function createTask(input: TaskFormInput): Promise<TaskActionResult
   if (!internshipId) return { success: false, error: 'Belum ada program magang aktif.' };
 
   const isDone = parsed.data.status === 'done';
-  const completedAt = isDone ? nowInJakarta().toISOString() : null;
+  const completedAt = isDone ? new Date().toISOString() : null;
 
   const { data, error } = await supabase
     .from('tasks')
@@ -178,7 +177,7 @@ export async function updateTask(
       due_date: parsed.data.dueDate || null,
       estimate_minutes: parsed.data.estimateMinutes || null,
       actual_minutes: parsed.data.actualMinutes || null,
-      completed_at: isDone ? nowInJakarta().toISOString() : null,
+      completed_at: isDone ? new Date().toISOString() : null,
     })
     .eq('id', id)
     .select()
@@ -209,7 +208,7 @@ export async function updateTaskStatus(
     .from('tasks')
     .update({
       status,
-      completed_at: isDone ? nowInJakarta().toISOString() : null,
+      completed_at: isDone ? new Date().toISOString() : null,
     })
     .eq('id', id);
 

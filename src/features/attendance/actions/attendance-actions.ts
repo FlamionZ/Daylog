@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { todayInJakarta, nowInJakarta } from '@/lib/date';
+import { todayInJakarta, formatTime } from '@/lib/date';
 import {
   checkInSchema,
   checkOutSchema,
@@ -49,6 +49,55 @@ async function getActiveInternshipId(
   return data?.id || null;
 }
 
+/**
+ * Automatically heals records that were saved with a timezone-shifted timestamp (e.g., +7 hours ahead).
+ * Check-in can never be in the future; if it is > 15 minutes ahead of current time,
+ * it was shifted by +7 hours and must be normalized back to real UTC time.
+ */
+async function sanitizeAttendanceRecord(
+  record: AttendanceRecord | null,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<AttendanceRecord | null> {
+  if (!record) return null;
+  const now = Date.now();
+  let modified = false;
+
+  let checkIn = record.check_in_at;
+  if (checkIn) {
+    const checkInTime = new Date(checkIn).getTime();
+    const createdTime = record.created_at ? new Date(record.created_at).getTime() : 0;
+    const diffCreated = createdTime ? checkInTime - createdTime : 0;
+    if (checkInTime > now + 15 * 60 * 1000 || (diffCreated > 6.5 * 3600 * 1000 && diffCreated < 7.5 * 3600 * 1000)) {
+      checkIn = new Date(checkInTime - 7 * 3600 * 1000).toISOString();
+      modified = true;
+    }
+  }
+
+  let checkOut = record.check_out_at;
+  if (checkOut) {
+    const checkOutTime = new Date(checkOut).getTime();
+    if (checkOutTime > now + 15 * 60 * 1000) {
+      checkOut = new Date(checkOutTime - 7 * 3600 * 1000).toISOString();
+      modified = true;
+    }
+  }
+
+  if (modified) {
+    record.check_in_at = checkIn;
+    record.check_out_at = checkOut;
+    try {
+      await supabase
+        .from('attendance_records')
+        .update({ check_in_at: checkIn, check_out_at: checkOut })
+        .eq('id', record.id);
+    } catch (e) {
+      console.error('Failed to auto-heal attendance record:', e);
+    }
+  }
+
+  return record;
+}
+
 export async function getTodayAttendance(): Promise<AttendanceRecord | null> {
   const supabase = await createClient();
   const {
@@ -74,7 +123,8 @@ export async function getTodayAttendance(): Promise<AttendanceRecord | null> {
     return null;
   }
 
-  return (data as unknown as AttendanceRecord) || null;
+  const raw = (data as unknown as AttendanceRecord) || null;
+  return sanitizeAttendanceRecord(raw, supabase);
 }
 
 export async function getAttendanceList(limit = 30): Promise<AttendanceRecord[]> {
@@ -100,7 +150,8 @@ export async function getAttendanceList(limit = 30): Promise<AttendanceRecord[]>
     return [];
   }
 
-  return (data as unknown as AttendanceRecord[]) || [];
+  const list = (data as unknown as AttendanceRecord[]) || [];
+  return Promise.all(list.map((r) => sanitizeAttendanceRecord(r, supabase) as Promise<AttendanceRecord>));
 }
 
 export async function checkIn(input: CheckInInput): Promise<AttendanceActionResult> {
@@ -132,7 +183,7 @@ export async function checkIn(input: CheckInInput): Promise<AttendanceActionResu
   const today = todayInJakarta();
   const isWorkMode = ['wfo', 'wfh', 'hybrid'].includes(parsed.data.workMode);
   const checkInTime = isWorkMode
-    ? parsed.data.checkInAt || nowInJakarta().toISOString()
+    ? parsed.data.checkInAt || new Date().toISOString()
     : null;
 
   const { data, error } = await supabase
@@ -194,7 +245,7 @@ export async function checkOut(input: CheckOutInput): Promise<AttendanceActionRe
   }
 
   const today = todayInJakarta();
-  const checkOutTime = parsed.data.checkOutAt || nowInJakarta().toISOString();
+  const checkOutTime = parsed.data.checkOutAt || new Date().toISOString();
 
   // Find existing record
   const { data: existing } = await supabase
@@ -413,8 +464,8 @@ export async function getKemnakerAttendanceRecap(): Promise<{
     const isSynced = isKemnakerSynced(r.notes);
     if (isSynced) syncedCount++;
 
-    const checkIn = r.check_in_at ? new Date(r.check_in_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-';
-    const checkOut = r.check_out_at ? new Date(r.check_out_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-';
+    const checkIn = r.check_in_at ? `${formatTime(r.check_in_at)} WIB` : '-';
+    const checkOut = r.check_out_at ? `${formatTime(r.check_out_at)} WIB` : '-';
     const syncStatus = isSynced ? '[✓ Diceklis]' : '[⏳ Belum Ceklist]';
 
     lines.push(

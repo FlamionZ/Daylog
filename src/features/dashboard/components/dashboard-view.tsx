@@ -43,7 +43,7 @@ import type { InternshipRecord } from '@/features/onboarding/actions/internship-
 import type { JournalRecord } from '@/features/journals/actions/journal-actions';
 import type { LearningRecord } from '@/features/learnings/actions/learning-actions';
 import type { ReportRecord } from '@/features/reports/actions/report-actions';
-import { getInternshipWeek, nowInJakarta } from '@/lib/date';
+import { getInternshipWeek, formatDate } from '@/lib/date';
 
 interface DashboardUser {
   id?: string;
@@ -210,12 +210,7 @@ export function DashboardView({
   // Calculate day & week of internship
   const weekNumber = getInternshipWeek(internship.start_date);
   const weekString = `Minggu ${String(weekNumber).padStart(2, '0')}`;
-  const now = nowInJakarta();
-  const dateString = now.toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-  });
+  const dateString = formatDate(new Date(), 'EEEE, d MMM');
 
   const activeTask = tasks.find((t) => t.status === 'in_progress') || tasks[0] || null;
   const latestJournal = journals[0] || null;

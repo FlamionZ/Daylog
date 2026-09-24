@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { nowInJakarta, calculateWorkedMinutes, formatDuration, formatDate } from '@/lib/date';
+import { calculateWorkedMinutes, formatDuration, formatDate } from '@/lib/date';
 import {
   reportFormSchema,
   type ReportFormInput,
@@ -323,7 +323,7 @@ export async function saveReport(input: ReportFormInput): Promise<ReportActionRe
   if (!internship) return { success: false, error: 'Belum ada program magang aktif.' };
 
   const isFinal = parsed.data.status === 'final';
-  const finalizedAt = isFinal ? nowInJakarta().toISOString() : null;
+  const finalizedAt = isFinal ? new Date().toISOString() : null;
 
   const { data, error } = await supabase
     .from('reports')

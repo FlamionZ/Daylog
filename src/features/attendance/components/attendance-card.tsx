@@ -25,7 +25,6 @@ import {
   formatTime,
   calculateWorkedMinutes,
   formatDuration,
-  nowInJakarta,
 } from '@/lib/date';
 
 interface AttendanceCardProps {
@@ -50,7 +49,7 @@ export function AttendanceCard({ record }: AttendanceCardProps) {
   // Live ticking WIB time
   React.useEffect(() => {
     const updateTime = () => {
-      const now = nowInJakarta();
+      const now = new Date();
       setCurrentTimeStr(formatTime(now));
     };
     updateTime();
@@ -68,7 +67,7 @@ export function AttendanceCard({ record }: AttendanceCardProps) {
       return { workedDuration: null, progressPercentage: 0 };
     }
     const start = new Date(record.check_in_at);
-    const end = record.check_out_at ? new Date(record.check_out_at) : nowInJakarta();
+    const end = record.check_out_at ? new Date(record.check_out_at) : new Date();
     const minutes = calculateWorkedMinutes(start, end, record.break_minutes || 0);
     const pct = Math.min(100, Math.round((minutes / 480) * 100));
     return {

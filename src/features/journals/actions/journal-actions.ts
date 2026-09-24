@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { nowInJakarta } from '@/lib/date';
 import {
   journalFormSchema,
   type JournalFormInput,
@@ -129,7 +128,7 @@ export async function saveJournal(
   if (!internshipId) return { success: false, error: 'Belum ada program magang aktif.' };
 
   const isCompleted = parsed.data.status === 'completed';
-  const completedAt = isCompleted ? nowInJakarta().toISOString() : null;
+  const completedAt = isCompleted ? new Date().toISOString() : null;
 
   const { data: journal, error } = await supabase
     .from('journals')

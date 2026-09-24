@@ -22,7 +22,7 @@ import {
   type CheckOutInput,
 } from '../schemas/attendance-schema';
 import { checkOut } from '../actions/attendance-actions';
-import { formatTime, nowInJakarta, calculateWorkedMinutes, formatDuration } from '@/lib/date';
+import { formatTime, calculateWorkedMinutes, formatDuration } from '@/lib/date';
 
 interface CheckOutModalProps {
   open: boolean;
@@ -40,7 +40,7 @@ export function CheckOutModal({
   const router = useRouter();
   const [isPending, startTransition] = React.useTransition();
   const [redirectAfter, setRedirectAfter] = React.useState(false);
-  const currentTime = formatTime(nowInJakarta());
+  const currentTime = formatTime(new Date());
 
   const form = useForm<CheckOutInput>({
     resolver: zodResolver(checkOutSchema),
@@ -55,7 +55,7 @@ export function CheckOutModal({
   // Calculate estimated total worked minutes
   const estimatedDuration = React.useMemo(() => {
     if (!checkInAt) return '0 jam 0 menit';
-    const now = nowInJakarta();
+    const now = new Date();
     const minutes = calculateWorkedMinutes(new Date(checkInAt), now, Number(breakMinutes));
     return formatDuration(minutes);
   }, [checkInAt, breakMinutes]);
@@ -98,7 +98,7 @@ export function CheckOutModal({
           <div className="mt-2 flex items-center justify-between text-sm">
             <span className="text-[hsl(var(--muted))]">Jam Check-out:</span>
             <span className="font-semibold text-[hsl(var(--foreground))]">
-              {currentTime || formatTime(nowInJakarta())} WIB
+              {currentTime || formatTime(new Date())} WIB
             </span>
           </div>
           <div className="mt-3 border-t border-[hsl(var(--border))] pt-3 flex items-center justify-between text-sm">

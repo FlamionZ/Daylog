@@ -22,7 +22,7 @@ import {
   type workModes,
 } from '../schemas/attendance-schema';
 import { checkIn } from '../actions/attendance-actions';
-import { formatTime, nowInJakarta } from '@/lib/date';
+import { formatTime } from '@/lib/date';
 
 interface CheckInModalProps {
   open: boolean;
@@ -49,7 +49,7 @@ export function CheckInModal({
   defaultLocation = 'Surakarta',
 }: CheckInModalProps) {
   const [isPending, startTransition] = React.useTransition();
-  const currentTime = formatTime(nowInJakarta());
+  const currentTime = formatTime(new Date());
 
   const form = useForm<CheckInInput>({
     resolver: zodResolver(checkInSchema),

@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Sun, Moon } from 'lucide-react';
 import type { AttendanceRecord } from '@/features/attendance/actions/attendance-actions';
+import { formatTime } from '@/lib/date';
 
 interface DaylogAttendanceCardProps {
   todayAttendance?: AttendanceRecord | null;
@@ -61,11 +62,7 @@ export function DaylogAttendanceCard({
     : 'WFO';
 
   const checkInTime = todayAttendance?.check_in_at
-    ? new Date(todayAttendance.check_in_at).toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      })
+    ? formatTime(todayAttendance.check_in_at)
     : null;
 
   return (

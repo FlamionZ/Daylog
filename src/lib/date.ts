@@ -80,6 +80,11 @@ export function calculateWorkedMinutes(
 
 /**
  * Get the current date in Asia/Jakarta timezone as a Date object.
+ * NOTE: Only use this for local calendar calculations (e.g. differenceInCalendarDays).
+ * NEVER call .toISOString() on this object to store in databases, because toZonedTime
+ * shifts the internal epoch time to Jakarta wall-clock time; .toISOString() will
+ * format the shifted time with 'Z', causing a +7h bug in timestamptz columns!
+ * For UTC timestamps to store in the database, always use new Date().toISOString().
  */
 export function nowInJakarta(): Date {
   return toZonedTime(new Date(), TIMEZONE);
