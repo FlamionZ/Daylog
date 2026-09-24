@@ -1,26 +1,35 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DaylogQuickProgressCardProps {
-  onSubmitProgress?: (text: string) => void;
+  onSubmitProgress?: (text: string) => Promise<void> | void;
 }
 
 export function DaylogQuickProgressCard({ onSubmitProgress }: DaylogQuickProgressCardProps) {
   const [text, setText] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    if (!text.trim() || isSubmitting) return;
 
-    if (onSubmitProgress) {
-      onSubmitProgress(text);
-    } else {
-      toast.success('Progress kecil berhasil dicatat!');
+    const trimmed = text.trim();
+    setIsSubmitting(true);
+    try {
+      if (onSubmitProgress) {
+        await onSubmitProgress(trimmed);
+      } else {
+        toast.success('Progress kecil berhasil dicatat!');
+      }
+      setText('');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Gagal mencatat progress.');
+    } finally {
+      setIsSubmitting(false);
     }
-    setText('');
   };
 
   return (
@@ -41,15 +50,20 @@ export function DaylogQuickProgressCard({ onSubmitProgress }: DaylogQuickProgres
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
+          disabled={isSubmitting}
           placeholder="Tulis satu hal yang selesai..."
-          className="w-full rounded-full border border-black/15 dark:border-[#524410] bg-white/90 dark:bg-black/40 px-4 py-2.5 text-xs text-[#2C2A26] dark:text-[#FDE047] placeholder:text-[#3E340D]/50 dark:placeholder:text-[#FDE047]/50 focus:outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/20 shadow-2xs"
+          className="w-full rounded-full border border-black/15 dark:border-[#524410] bg-white/90 dark:bg-black/40 px-4 py-2.5 text-xs text-[#2C2A26] dark:text-[#FDE047] placeholder:text-[#3E340D]/50 dark:placeholder:text-[#FDE047]/50 focus:outline-none focus:ring-2 focus:ring-black/20 dark:focus:ring-white/20 shadow-2xs disabled:opacity-50"
         />
         <button
           type="submit"
-          disabled={!text.trim()}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black dark:bg-[#FDE047] text-white dark:text-[#282208] shadow-xs transition-all hover:bg-black/85 dark:hover:bg-[#FDE047]/90 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+          disabled={!text.trim() || isSubmitting}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black dark:bg-[#FDE047] text-white dark:text-[#282208] shadow-xs transition-all hover:bg-black/85 dark:hover:bg-[#FDE047]/90 active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
-          <ArrowRight className="size-4 stroke-[2.5]" />
+          {isSubmitting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ArrowRight className="size-4 stroke-[2.5]" />
+          )}
         </button>
       </form>
     </div>

@@ -1,8 +1,10 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/browser';
 import {
   CalendarDays,
   MapPin,
@@ -36,6 +38,32 @@ const navItems: readonly NavItem[] = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [userName, setUserName] = React.useState<string>('Peserta');
+  const [initials, setInitials] = React.useState<string>('P');
+  const [attendanceCount, setAttendanceCount] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Peserta';
+        setUserName(name);
+        const parts = name.trim().split(/\s+/);
+        const inits = parts.length > 1
+          ? (parts[0][0] + parts[1][0]).toUpperCase()
+          : parts[0].slice(0, 2).toUpperCase();
+        setInitials(inits);
+
+        supabase
+          .from('attendance_records')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .then(({ count }) => {
+            setAttendanceCount(count ?? 0);
+          });
+      }
+    });
+  }, []);
 
   return (
     <aside
@@ -107,7 +135,13 @@ export function AppSidebar() {
 
         {/* Consistency Pill */}
         <div className="flex items-center justify-between rounded-full border border-border bg-secondary/40 px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-2xs backdrop-blur-xs">
-          <span>12 hari konsisten</span>
+          <span>
+            {attendanceCount === null
+              ? 'Konsisten magang'
+              : attendanceCount > 0
+                ? `${attendanceCount} hari konsisten`
+                : 'Mulai konsisten hari ini'}
+          </span>
           <span className="size-2 rounded-full bg-[#6284EB] dark:bg-[#3B82F6]" />
         </div>
 
@@ -115,10 +149,10 @@ export function AppSidebar() {
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex size-7.5 shrink-0 items-center justify-center rounded-full bg-[#DDE7FE] dark:bg-[#1E2D4A] text-xs font-bold text-[#3B66E8] dark:text-[#60A5FA]">
-              RA
+              {initials}
             </div>
             <span className="truncate text-sm font-semibold text-foreground">
-              Rakha
+              {userName}
             </span>
           </div>
 

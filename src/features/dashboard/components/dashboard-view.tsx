@@ -33,12 +33,16 @@ import { DaylogActiveTasksCard } from './daylog-active-tasks-card';
 import { DaylogReportCard } from './daylog-report-card';
 import { DaylogJournalAiCard } from './daylog-journal-ai-card';
 import { DaylogQuickProgressCard } from './daylog-quick-progress-card';
-
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/browser';
+import { CheckInModal } from '@/features/attendance/components/check-in-modal';
+import { CheckOutModal } from '@/features/attendance/components/check-out-modal';
+import { createTask, type TaskRecord } from '@/features/tasks/actions/task-actions';
 import type { AttendanceRecord } from '@/features/attendance/actions/attendance-actions';
 import type { InternshipRecord } from '@/features/onboarding/actions/internship-actions';
-import type { TaskRecord } from '@/features/tasks/actions/task-actions';
 import type { JournalRecord } from '@/features/journals/actions/journal-actions';
 import type { LearningRecord } from '@/features/learnings/actions/learning-actions';
+import type { ReportRecord } from '@/features/reports/actions/report-actions';
 import { getInternshipWeek, nowInJakarta } from '@/lib/date';
 
 interface DashboardUser {
@@ -56,6 +60,7 @@ interface DashboardViewProps {
   tasks: TaskRecord[];
   journals: JournalRecord[];
   learnings: LearningRecord[];
+  reports?: ReportRecord[];
 }
 
 export function DashboardView({
@@ -65,13 +70,57 @@ export function DashboardView({
   tasks,
   journals,
   learnings,
+  reports = [],
 }: DashboardViewProps) {
+  const router = useRouter();
   const [onboardingOpen, setOnboardingOpen] = React.useState(false);
   const [taskModalOpen, setTaskModalOpen] = React.useState(false);
   const [learningModalOpen, setLearningModalOpen] = React.useState(false);
+  const [checkInOpen, setCheckInOpen] = React.useState(false);
+  const [checkOutOpen, setCheckOutOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
 
-  // Keyboard shortcuts: T for Task, L for Learning, J for Journal
+  // Setup Supabase Realtime for live updates on data changes
+  React.useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'attendance_records' },
+        () => {
+          router.refresh();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        () => {
+          router.refresh();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'journal_entries' },
+        () => {
+          router.refresh();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'weekly_reports' },
+        () => {
+          router.refresh();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [router]);
+
+  // Keyboard shortcuts: T for Task, L for Learning
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -98,11 +147,24 @@ export function DashboardView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const handleQuickProgress = async (text: string) => {
+    const res = await createTask({
+      title: text,
+      status: 'done',
+      priority: 'medium',
+    });
+    if (res.success) {
+      router.refresh();
+    } else {
+      throw new Error(res.error || 'Gagal menyimpan progress');
+    }
+  };
+
   const fullName =
     user?.user_metadata?.full_name ||
     user?.email?.split('@')[0] ||
-    'Rakha';
-  const firstName = fullName.split(' ')[0] || 'Rakha';
+    'Peserta';
+  const firstName = fullName.split(' ')[0] || 'Peserta';
 
   // If no active internship, show onboarding empty state
   if (!internship) {
@@ -113,7 +175,7 @@ export function DashboardView({
             Hai {firstName}, ready buat hari ini? ☀️
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Mari mulai setup workspace magang pribadimu di PT. Tiga Serangkai Pustaka Mandiri.
+            Mari mulai setup workspace magang pribadimu untuk mencatat kehadiran, jurnal, dan tugas harian.
           </p>
         </div>
 
@@ -275,15 +337,21 @@ export function DashboardView({
           <DaylogFocusCard
             activeTask={activeTask}
             onOpenTasks={() => setTaskModalOpen(true)}
+            onCreateTask={() => setTaskModalOpen(true)}
           />
         </div>
         <div className="md:col-span-2 lg:col-span-4">
-          <DaylogAttendanceCard todayAttendance={todayAttendance} />
+          <DaylogAttendanceCard
+            todayAttendance={todayAttendance}
+            onOpenCheckIn={() => setCheckInOpen(true)}
+            onOpenCheckOut={() => setCheckOutOpen(true)}
+          />
         </div>
 
         {/* ROW 2: Rhythm Card (4 cols), Active Tasks (4 cols), Report Card (4 cols) */}
         <div className="md:col-span-1 lg:col-span-4">
           <DaylogRhythmCard
+            journals={journals}
             completedJournalsCount={completedJournalsThisWeek}
             totalTarget={5}
           />
@@ -292,10 +360,11 @@ export function DashboardView({
           <DaylogActiveTasksCard
             tasks={tasks}
             onOpenTasks={() => setTaskModalOpen(true)}
+            onCreateTask={() => setTaskModalOpen(true)}
           />
         </div>
         <div className="md:col-span-2 lg:col-span-4">
-          <DaylogReportCard />
+          <DaylogReportCard reports={reports} />
         </div>
 
         {/* ROW 3: Journal AI Card (8 cols) & Quick Progress Card (4 cols) */}
@@ -303,7 +372,7 @@ export function DashboardView({
           <DaylogJournalAiCard latestJournal={latestJournal} />
         </div>
         <div className="md:col-span-2 lg:col-span-4">
-          <DaylogQuickProgressCard />
+          <DaylogQuickProgressCard onSubmitProgress={handleQuickProgress} />
         </div>
       </div>
 
@@ -369,13 +438,26 @@ export function DashboardView({
       </div>
 
       {/* Modals */}
+      <CheckInModal
+        open={checkInOpen}
+        onOpenChange={setCheckInOpen}
+        onSuccess={() => router.refresh()}
+      />
+      <CheckOutModal
+        open={checkOutOpen}
+        onOpenChange={setCheckOutOpen}
+        checkInAt={todayAttendance?.check_in_at}
+        onSuccess={() => router.refresh()}
+      />
       <TaskFormModal
         open={taskModalOpen}
         onOpenChange={setTaskModalOpen}
+        onSuccess={() => router.refresh()}
       />
       <LearningFormModal
         open={learningModalOpen}
         onOpenChange={setLearningModalOpen}
+        onSuccess={() => router.refresh()}
       />
       <OnboardingModal
         open={onboardingOpen}

@@ -14,18 +14,28 @@ export function DaylogJournalAiCard({
   latestJournal,
   onOpenAiAssistant,
 }: DaylogJournalAiCardProps) {
-  const title =
-    latestJournal?.title || 'Caching akhirnya nggak bikin overthinking';
-  const summary =
-    latestJournal?.summary ||
-    'Hari ini aku nemu edge case dan beresin flow dashboard.';
-  const dateText = latestJournal?.journal_date
+  const hasJournal = !!latestJournal;
+
+  const title = hasJournal
+    ? latestJournal.title
+    : 'Belum ada catatan jurnal';
+
+  const summary = hasJournal
+    ? latestJournal.summary || (latestJournal.activities ? latestJournal.activities.slice(0, 120) + '...' : 'Belum ada ringkasan jurnal.')
+    : 'Refleksikan aktivitas magang dan hasil kerjamu hari ini. Kamu bisa merapikannya dengan asistensi AI.';
+
+  const dateText = hasJournal && latestJournal.journal_date
     ? new Date(latestJournal.journal_date).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'short',
       })
-    : '21 Sep';
-  const statusText = latestJournal?.status === 'completed' ? 'Selesai' : 'Draft';
+    : 'Hari ini';
+
+  const statusText = hasJournal
+    ? latestJournal.status === 'completed'
+      ? 'Selesai'
+      : 'Draft'
+    : 'Belum diisi';
 
   return (
     <div className="relative overflow-hidden rounded-[24px] bg-[#DED8FA] dark:bg-[#1C1530] p-6 text-[#2B1E4A] dark:text-[#DDD6FE] shadow-sm border border-[#C6B8F5] dark:border-[#382B5E] flex flex-col justify-between min-h-[160px] transition-all hover:shadow-md">
@@ -57,19 +67,29 @@ export function DaylogJournalAiCard({
           {dateText} · {statusText}
         </span>
 
-        <Link
-          href="/assistant"
-          onClick={(e) => {
-            if (onOpenAiAssistant) {
-              e.preventDefault();
-              onOpenAiAssistant();
-            }
-          }}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2B1E4A] dark:text-[#DDD6FE] hover:text-black dark:hover:text-white transition-colors group"
-        >
-          <span>Rapikan dengan AI</span>
-          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-        </Link>
+        {hasJournal ? (
+          <Link
+            href="/assistant"
+            onClick={(e) => {
+              if (onOpenAiAssistant) {
+                e.preventDefault();
+                onOpenAiAssistant();
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2B1E4A] dark:text-[#DDD6FE] hover:text-black dark:hover:text-white transition-colors group"
+          >
+            <span>Rapikan dengan AI</span>
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        ) : (
+          <Link
+            href="/journals"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2B1E4A] dark:text-[#DDD6FE] hover:text-black dark:hover:text-white transition-colors group"
+          >
+            <span>Tulis Jurnal Sekarang</span>
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        )}
       </div>
     </div>
   );

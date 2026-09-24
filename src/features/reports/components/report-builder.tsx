@@ -534,7 +534,7 @@ ${enhancement.nextWeekPlan.map((item) => `- ${item}`).join('\n')}
           onApply={(_draft, formattedMarkdown) => {
             form.setValue('contentMarkdown', formattedMarkdown);
             if (!form.getValues('title')) {
-              form.setValue('title', 'Laporan Akhir Program Magang — PT Tiga Serangkai');
+              form.setValue('title', 'Laporan Akhir Program Magang');
             }
           }}
         />

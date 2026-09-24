@@ -21,6 +21,7 @@ import {
   type CreateInternshipInput,
 } from '../schemas/internship-schema';
 import { createInternship } from '../actions/internship-actions';
+import { todayInJakarta } from '@/lib/date';
 
 interface OnboardingModalProps {
   open: boolean;
@@ -40,20 +41,16 @@ export function OnboardingModal({
   const form = useForm<CreateInternshipInput>({
     resolver: zodResolver(createInternshipSchema),
     defaultValues: {
-      companyName: defaultValues?.companyName || 'PT. Tiga Serangkai Pustaka Mandiri',
-      roleTitle:
-        defaultValues?.roleTitle ||
-        'Software Developer — Fullstack, Frontend, Backend, Mobile & Desktop',
-      location: defaultValues?.location || 'KOTA SURAKARTA',
+      companyName: defaultValues?.companyName || '',
+      roleTitle: defaultValues?.roleTitle || '',
+      location: defaultValues?.location || '',
       mentorName: defaultValues?.mentorName || '',
       mentorContact: defaultValues?.mentorContact || '',
-      startDate: defaultValues?.startDate || '2026-09-21',
-      endDate: defaultValues?.endDate || '2027-03-20',
+      startDate: defaultValues?.startDate || todayInJakarta(),
+      endDate: defaultValues?.endDate || '',
       defaultStartTime: defaultValues?.defaultStartTime || '08:00',
       defaultEndTime: defaultValues?.defaultEndTime || '17:00',
-      notes:
-        defaultValues?.notes ||
-        'Program MagangHub Kemnaker RI — Periode 21 September 2026 s/d 20 Maret 2027.',
+      notes: defaultValues?.notes || '',
     },
   });
 
@@ -89,7 +86,7 @@ export function OnboardingModal({
                 <Building2 className="absolute left-3 top-2.5 size-4 text-[hsl(var(--muted))]" />
                 <Input
                   id="companyName"
-                  placeholder="PT Tiga Serangkai"
+                  placeholder="Contoh: PT Inovasi Digital"
                   className="pl-9"
                   disabled={isPending}
                   {...form.register('companyName')}

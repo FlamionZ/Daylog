@@ -68,25 +68,20 @@ export function SettingsView({ initialData }: SettingsViewProps) {
     },
   });
 
-  // Internship Form with sensible defaults if no active internship yet
+  // Internship Form
   const internshipForm = useForm<InternshipSettingsInput>({
     resolver: zodResolver(internshipSettingsSchema),
     defaultValues: {
-      companyName:
-        initialData.internship?.companyName || 'PT. Tiga Serangkai Pustaka Mandiri',
-      roleTitle:
-        initialData.internship?.roleTitle ||
-        'Software Developer — Fullstack, Frontend, Backend, Mobile & Desktop',
-      location: initialData.internship?.location || 'KOTA SURAKARTA',
+      companyName: initialData.internship?.companyName || '',
+      roleTitle: initialData.internship?.roleTitle || '',
+      location: initialData.internship?.location || '',
       mentorName: initialData.internship?.mentorName || '',
       mentorContact: initialData.internship?.mentorContact || '',
-      startDate: initialData.internship?.startDate || '2026-09-21',
-      endDate: initialData.internship?.endDate || '2027-03-20',
+      startDate: initialData.internship?.startDate || '',
+      endDate: initialData.internship?.endDate || '',
       defaultStartTime: initialData.internship?.defaultStartTime?.slice(0, 5) || '08:00',
       defaultEndTime: initialData.internship?.defaultEndTime?.slice(0, 5) || '17:00',
-      notes:
-        initialData.internship?.notes ||
-        'Program MagangHub Kemnaker RI — Periode 21 September 2026 s/d 20 Maret 2027.',
+      notes: initialData.internship?.notes || '',
     },
   });
 
@@ -330,7 +325,7 @@ export function SettingsView({ initialData }: SettingsViewProps) {
                     </Label>
                     <Input
                       id="companyName"
-                      placeholder="Contoh: PT Tiga Serangkai"
+                      placeholder="Contoh: PT Inovasi Digital"
                       className="rounded-xl border border-border bg-card text-foreground text-xs placeholder:text-muted-foreground focus-visible:ring-primary/20"
                       {...internshipForm.register('companyName')}
                       aria-invalid={!!internshipForm.formState.errors.companyName}

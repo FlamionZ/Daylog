@@ -132,7 +132,7 @@ export function AISettingsCard({ initialStats }: AISettingsCardProps) {
                 <p className="text-foreground/85">
                   Semua data masukan disaring terlebih dahulu di sisi server untuk menyamarkan rahasia,
                   token API, kredensial, dan data sensitif sebelum diproses oleh model. Asisten AI tidak
-                  memiliki akses ke repository internal PT Tiga Serangkai dan tidak pernah mengirim data ke luar sistem secara otomatis.
+                  memiliki akses ke repository internal perusahaan dan tidak pernah mengirim data ke luar sistem secara otomatis.
                 </p>
               </div>
             </div>

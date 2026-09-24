@@ -238,7 +238,7 @@ export function LoginForm() {
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70 pointer-events-none" />
                 <Input
                   id="signup-name"
-                  placeholder="Rakha Pratama"
+                  placeholder="Contoh: Budi Santoso"
                   className="h-10 rounded-full border border-border/80 bg-secondary/30 pl-10 pr-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary focus-visible:border-primary transition-all"
                   disabled={isPending}
                   {...signUpForm.register('fullName')}

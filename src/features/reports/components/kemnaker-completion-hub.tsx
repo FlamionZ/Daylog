@@ -26,6 +26,8 @@ interface KemnakerCompletionHubProps {
     roleTitle: string;
     startDate: string;
     endDate: string;
+    location?: string;
+    mentorName?: string;
   } | null;
   statistics?: {
     totalJournals: number;
@@ -96,8 +98,8 @@ export function KemnakerCompletionHub({
 
     const text = [
       `LAPORAN AKHIR PROGRAM MAGANGHUB KEMNAKER RI`,
-      `Peserta: Software Developer Intern`,
-      `Perusahaan: ${activeInternship?.companyName || 'PT Tiga Serangkai'}`,
+      `Posisi: ${activeInternship?.roleTitle || '-'}`,
+      `Perusahaan: ${activeInternship?.companyName || '-'}`,
       `Periode: ${activeInternship?.startDate || '-'} s/d ${activeInternship?.endDate || '-'}`,
       `Total Jam Kerja: ${statistics.totalHoursFormatted}`,
       ``,
@@ -366,7 +368,7 @@ export function KemnakerCompletionHub({
                 Program MagangHub Kementerian Ketenagakerjaan Republik Indonesia
               </p>
               <p className="text-xs font-semibold text-foreground m-0">
-                {activeInternship?.companyName || 'PT Tiga Serangkai'} — Surakarta
+                {activeInternship?.companyName || '-'} {activeInternship?.location ? `— ${activeInternship.location}` : ''}
               </p>
             </div>
 
@@ -378,11 +380,11 @@ export function KemnakerCompletionHub({
             <div className="grid grid-cols-2 gap-8 pt-8 text-center text-xs border-t border-border/60 print:block">
               <div>
                 <p className="text-muted-foreground mb-16">Peserta Magang,</p>
-                <p className="font-bold text-foreground underline">Software Developer Intern</p>
+                <p className="font-bold text-foreground underline">{activeInternship?.roleTitle || 'Peserta Magang'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground mb-16">Pembimbing Lapangan / Mentor,</p>
-                <p className="font-bold text-foreground underline">PT Tiga Serangkai</p>
+                <p className="font-bold text-foreground underline">{activeInternship?.mentorName || activeInternship?.companyName || 'Pembimbing Magang'}</p>
               </div>
             </div>
           </div>
@@ -393,12 +395,12 @@ export function KemnakerCompletionHub({
       <FinalReportAIModal
         open={isAIModalOpen}
         onOpenChange={setIsAIModalOpen}
-        internshipRole={activeInternship?.roleTitle || 'Software Developer Intern'}
-        companyName={activeInternship?.companyName || 'PT Tiga Serangkai'}
-        durationText="6 Bulan"
+        internshipRole={activeInternship?.roleTitle || 'Peserta Magang'}
+        companyName={activeInternship?.companyName || ''}
+        durationText="Periode Magang"
         totalHours={statistics.totalHoursFormatted}
         tasksCompletedSummary={`${statistics.completedTasks} tugas diselesaikan`}
-        learningsSummary="Pengembangan modul frontend Next.js 16, arsitektur database Supabase, dan AI assistant"
+        learningsSummary=""
         journalsSummary={`${statistics.completedJournals} jurnal harian tercatat`}
         onApply={() => {
           if (onOpenReportBuilder) {

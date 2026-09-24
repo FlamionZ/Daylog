@@ -4,6 +4,7 @@ import { getTodayAttendance } from '@/features/attendance/actions/attendance-act
 import { getTasks } from '@/features/tasks/actions/task-actions';
 import { getJournals } from '@/features/journals/actions/journal-actions';
 import { getLearnings } from '@/features/learnings/actions/learning-actions';
+import { getReports } from '@/features/reports/actions/report-actions';
 import { DashboardView } from '@/features/dashboard/components/dashboard-view';
 
 export const metadata = {
@@ -17,13 +18,14 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [internship, todayAttendance, tasks, journals, learnings] =
+  const [internship, todayAttendance, tasks, journals, learnings, reports] =
     await Promise.all([
       getActiveInternship(),
       getTodayAttendance(),
       getTasks(),
-      getJournals(5),
+      getJournals(14),
       getLearnings(),
+      getReports(),
     ]);
 
   return (
@@ -34,6 +36,7 @@ export default async function DashboardPage() {
       tasks={tasks}
       journals={journals}
       learnings={learnings}
+      reports={reports}
     />
   );
 }

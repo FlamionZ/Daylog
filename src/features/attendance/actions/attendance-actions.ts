@@ -401,8 +401,8 @@ export async function getKemnakerAttendanceRecap(): Promise<{
   const lines: string[] = [
     `REKAP PRESENSI MAGANGHUB KEMNAKER`,
     `Peserta: ${internship?.profiles?.full_name || 'Peserta Magang'}`,
-    `Posisi: ${internship?.role_title || 'Software Developer Intern'}`,
-    `Perusahaan: ${internship?.company_name || 'PT Tiga Serangkai'}`,
+    `Posisi: ${internship?.role_title || '-'}`,
+    `Perusahaan: ${internship?.company_name || '-'}`,
     `Periode: ${internship?.start_date || '-'} s/d ${internship?.end_date || '-'}`,
     `--------------------------------------------------------------------------------`,
     `No | Tanggal    | Mode   | Check-in  | Check-out | Istirahat | Status Web Kemnaker`,

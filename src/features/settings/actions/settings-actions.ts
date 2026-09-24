@@ -69,7 +69,7 @@ export async function getSettingsData(): Promise<SettingsData> {
       profileRes.data?.full_name ||
       user.user_metadata?.full_name ||
       user.email?.split('@')[0] ||
-      'Muhammad Rakha Abimanyu',
+      'Peserta Magang',
     timezone: profileRes.data?.timezone || 'Asia/Jakarta',
   };
 
