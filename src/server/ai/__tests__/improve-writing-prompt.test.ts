@@ -28,8 +28,9 @@ describe('Improve Writing Prompt & Schema', () => {
     expect(parsed.success).toBe(false);
   });
 
-  it('should build prompt for all 5 modes', () => {
+  it('should build prompt for all 6 modes including humanize', () => {
     const modes: ImproveWritingMode[] = [
+      'humanize',
       'polish',
       'professional',
       'summarize',
@@ -49,5 +50,6 @@ describe('Improve Writing Prompt & Schema', () => {
     expect(IMPROVE_WRITING_SYSTEM_PROMPT).toContain('Pertahankan seluruh fakta asli');
     expect(IMPROVE_WRITING_SYSTEM_PROMPT).toContain('DILARANG KERAS menambahkan hasil');
     expect(IMPROVE_WRITING_SYSTEM_PROMPT).toContain('Pertahankan istilah teknis');
+    expect(IMPROVE_WRITING_SYSTEM_PROMPT).toContain('HUMANIZE');
   });
 });

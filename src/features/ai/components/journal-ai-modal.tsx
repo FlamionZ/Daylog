@@ -176,11 +176,16 @@ export function JournalAIModal({
               <Sparkles className="size-5 stroke-[2.2]" />
             </div>
             <div>
-              <DialogTitle className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
-                Bantu Tulis Jurnal dengan Asisten AI
-              </DialogTitle>
+              <div className="flex items-center gap-2 flex-wrap">
+                <DialogTitle className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
+                  Bantu Tulis Jurnal dengan Asisten AI
+                </DialogTitle>
+                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                  Gaya Alami (Humanize)
+                </span>
+              </div>
               <DialogDescription className="text-xs font-medium text-muted-foreground mt-0.5">
-                Masukkan catatan kasar aktivitas magang. AI akan menyusunnya ke format resmi 4 poin Monev Kemnaker RI.
+                Masukkan catatan kasar aktivitas magang. AI akan menyusunnya ke format resmi 4 poin Monev Kemnaker RI dengan bahasa alami manusia (bebas repetisi kata & buzzword).
               </DialogDescription>
             </div>
           </div>

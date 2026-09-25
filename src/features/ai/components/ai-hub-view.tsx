@@ -9,12 +9,14 @@ import {
   ListTodo,
   GraduationCap,
   TrendingUp,
+  UserCheck,
 } from 'lucide-react';
 import { JournalAIModal } from './journal-ai-modal';
 import { BlockerAdvisorModal } from './blocker-advisor-modal';
 import { DailyReflectionModal } from './daily-reflection-modal';
 import { TaskExtractionModal } from './task-extraction-modal';
 import { LearningExtractionModal } from './learning-extraction-modal';
+import { HumanizeModal } from './humanize-modal';
 import { todayInJakarta } from '@/lib/date';
 
 export function AIHubView() {
@@ -23,6 +25,7 @@ export function AIHubView() {
   const [reflectionModalOpen, setReflectionModalOpen] = React.useState(false);
   const [taskModalOpen, setTaskModalOpen] = React.useState(false);
   const [learningModalOpen, setLearningModalOpen] = React.useState(false);
+  const [humanizeModalOpen, setHumanizeModalOpen] = React.useState(false);
 
   const today = todayInJakarta();
 
@@ -50,7 +53,7 @@ export function AIHubView() {
             Katalog Alat AI Copilot
           </h2>
           <span className="rounded-full bg-card border border-border px-3 py-0.5 text-[11px] font-bold text-foreground font-mono shadow-2xs">
-            6 Alat Tersedia
+            7 Alat Tersedia
           </span>
         </div>
 
@@ -297,6 +300,48 @@ export function AIHubView() {
               </Link>
             </div>
           </div>
+
+          {/* 07: Humanize & Poles Tulisan (Pastel Emerald Mint) */}
+          <div className="relative overflow-hidden rounded-[26px] bg-[#C7F2DC] dark:bg-[#0B2E1E] p-6 text-[#0D442B] dark:text-[#A7F3D0] border border-[#9FE7C3] dark:border-[#134E35] shadow-xs hover:shadow-md transition-all flex flex-col justify-between min-h-[220px]">
+            {/* Top decorative user check SVG */}
+            <svg
+              className="pointer-events-none absolute right-5 top-5 h-9 w-9 text-[#0D442B]/25 dark:text-[#A7F3D0]/25"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <polyline points="16 11 18 13 22 9" />
+            </svg>
+
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="rounded-full bg-[#0D442B]/10 dark:bg-[#A7F3D0]/15 px-3 py-1 font-mono text-[10px] font-extrabold text-[#0D442B] dark:text-[#A7F3D0] uppercase tracking-wider">
+                  07 · Anti-AI Slop
+                </span>
+              </div>
+              <h3 className="text-lg font-extrabold tracking-tight text-[#0D442B] dark:text-[#A7F3D0]">
+                Humanize & Poles Tulisan
+              </h3>
+              <p className="mt-2 text-xs font-medium text-[#0D442B]/80 dark:text-[#A7F3D0]/80 leading-relaxed">
+                Ubah catatan kasar atau draf tulisan kaku menjadi gaya bahasa alami manusia. Menghapus repetisi awalan monoton (&ldquo;Melakukan...&rdquo;) dan buzzword robotik AI.
+              </p>
+            </div>
+
+            <div className="pt-6 mt-2 border-t border-[#0D442B]/10 dark:border-[#A7F3D0]/15">
+              <button
+                type="button"
+                onClick={() => setHumanizeModalOpen(true)}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-[#0D442B] dark:bg-[#A7F3D0] px-5 py-2.5 text-xs font-bold text-white dark:text-[#0B2E1E] hover:bg-[#145A39] dark:hover:bg-white active:scale-95 transition-all shadow-xs"
+              >
+                <UserCheck className="size-3.5" />
+                <span>Buka Humanizer Teks</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -339,6 +384,11 @@ export function AIHubView() {
         open={learningModalOpen}
         onOpenChange={setLearningModalOpen}
         notes="Catatan pembelajaran hari ini"
+      />
+
+      <HumanizeModal
+        open={humanizeModalOpen}
+        onOpenChange={setHumanizeModalOpen}
       />
     </div>
   );
