@@ -376,13 +376,11 @@ export function AIHubView() {
       <TaskExtractionModal
         open={taskModalOpen}
         onOpenChange={setTaskModalOpen}
-        notes="Catatan tugas hari ini"
       />
 
       <LearningExtractionModal
         open={learningModalOpen}
         onOpenChange={setLearningModalOpen}
-        notes="Catatan pembelajaran hari ini"
       />
 
       <HumanizeModal

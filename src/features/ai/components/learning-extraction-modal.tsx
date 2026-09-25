@@ -9,6 +9,9 @@ import {
   AlertTriangle,
   Info,
   Quote,
+  Sparkles,
+  BookOpen,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   Dialog,
@@ -20,13 +23,14 @@ import {
 } from '@/components/ui/dialog';
 import { extractLearningsAction } from '../actions/ai-actions';
 import { createLearning } from '@/features/learnings/actions/learning-actions';
+import { getJournalByDate } from '@/features/journals/actions/journal-actions';
 import { todayInJakarta } from '@/lib/date';
 import type { ExtractedLearningItem } from '@/server/ai/prompts/extract-learnings';
 
 interface LearningExtractionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  notes: string;
+  notes?: string;
   onSuccess?: () => void;
 }
 
@@ -38,39 +42,153 @@ interface EditableLearningItem extends ExtractedLearningItem {
 export function LearningExtractionModal({
   open,
   onOpenChange,
-  notes,
+  notes = '',
   onSuccess,
 }: LearningExtractionModalProps) {
   const [isExtracting, startExtracting] = React.useTransition();
   const [isSaving, startSaving] = React.useTransition();
+  const [isFetchingContext, setIsFetchingContext] = React.useState(Boolean(open && !notes));
+  const [notesInput, setNotesInput] = React.useState(notes);
   const [learnings, setLearnings] = React.useState<EditableLearningItem[]>([]);
   const [warningMessage, setWarningMessage] = React.useState<string | null>(null);
+  const [hasAttemptedScan, setHasAttemptedScan] = React.useState(false);
+  const [isEditingSource, setIsEditingSource] = React.useState(false);
 
-  // Auto extract when modal opens and learnings are empty
+  // When modal opens:
+  // If notes provided from scratchpad with content, auto-extract
+  // If notes not provided, prefetch today's journal context
   React.useEffect(() => {
-    if (open && notes.trim() && learnings.length === 0) {
-      startExtracting(async () => {
-        const res = await extractLearningsAction({ notes });
+    let ignore = false;
 
-        if (res.success && res.data) {
-          const items: EditableLearningItem[] = res.data.learnings.map((l, idx) => ({
-            ...l,
-            id: `learning-${idx}-${Date.now()}`,
-            selected: true,
-          }));
-          setLearnings(items);
-          setWarningMessage(res.warning || null);
-          if (items.length === 0) {
-            toast.info('Tidak ada pembelajaran baru yang terdeteksi.');
+    if (open) {
+      if (notes && notes.trim().length > 5 && learnings.length === 0 && !hasAttemptedScan) {
+        startExtracting(async () => {
+          setHasAttemptedScan(true);
+          const res = await extractLearningsAction({ notes });
+
+          if (ignore) return;
+          if (res.success && res.data) {
+            const items: EditableLearningItem[] = res.data.learnings.map((l, idx) => ({
+              ...l,
+              id: `learning-${idx}-${Date.now()}`,
+              selected: true,
+            }));
+            setLearnings(items);
+            setWarningMessage(res.warning || null);
+            if (items.length === 0) {
+              toast.info('Tidak ada pembelajaran baru yang terdeteksi dari catatan.');
+            } else {
+              toast.success(`${items.length} materi pembelajaran berhasil diekstrak!`);
+            }
           } else {
-            toast.success(`${items.length} materi pembelajaran berhasil diekstrak!`);
+            toast.error(res.error || 'Gagal mengekstrak pembelajaran.');
           }
-        } else {
-          toast.error(res.error || 'Gagal mengekstrak pembelajaran.');
-        }
-      });
+        });
+      } else if (!notes && learnings.length === 0 && !hasAttemptedScan) {
+        // AI Hub mode: prefetch today's journal learnings and activities
+        getJournalByDate(todayInJakarta())
+          .then((journal) => {
+            if (ignore) return;
+            if (journal && (journal.learnings?.trim() || journal.activities?.trim())) {
+              const parts: string[] = [];
+              if (journal.learnings?.trim()) {
+                parts.push(`Pembelajaran Hari Ini:\n${journal.learnings.trim()}`);
+              }
+              if (journal.activities?.trim()) {
+                parts.push(`Aktivitas Praktik:\n${journal.activities.trim()}`);
+              }
+              setNotesInput((prev) => (prev ? prev : parts.join('\n\n')));
+            }
+          })
+          .catch((err) => {
+            console.error('Error prefetching journal for learnings:', err);
+          })
+          .finally(() => {
+            if (!ignore) {
+              setIsFetchingContext(false);
+            }
+          });
+      }
     }
-  }, [open, notes, learnings.length]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [open, notes, hasAttemptedScan, learnings.length]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setLearnings([]);
+      setHasAttemptedScan(false);
+      setWarningMessage(null);
+      setIsEditingSource(false);
+      setIsFetchingContext(false);
+    } else {
+      if (notes) {
+        setNotesInput(notes);
+      } else {
+        setIsFetchingContext(true);
+      }
+    }
+    onOpenChange(newOpen);
+  };
+
+  const handleManualLoadJournal = async () => {
+    setIsFetchingContext(true);
+    try {
+      const journal = await getJournalByDate(todayInJakarta());
+      if (journal && (journal.learnings?.trim() || journal.activities?.trim())) {
+        const parts: string[] = [];
+        if (journal.learnings?.trim()) {
+          parts.push(`Pembelajaran Hari Ini:\n${journal.learnings.trim()}`);
+        }
+        if (journal.activities?.trim()) {
+          parts.push(`Aktivitas Praktik:\n${journal.activities.trim()}`);
+        }
+        setNotesInput(parts.join('\n\n'));
+        toast.success('Berhasil memuat materi pembelajaran dari jurnal hari ini!');
+      } else {
+        toast.info(
+          'Belum ada catatan pembelajaran di jurnal hari ini. Kamu bisa menulis atau menempel catatan langsung di kolom bawah.',
+        );
+      }
+    } catch (err) {
+      console.error('Error loading journal:', err);
+      toast.error('Gagal memuat jurnal hari ini.');
+    } finally {
+      setIsFetchingContext(false);
+    }
+  };
+
+  const handleExtract = () => {
+    if (!notesInput.trim()) {
+      toast.error('Masukkan catatan atau klik "Muat dari Jurnal Hari Ini" terlebih dahulu.');
+      return;
+    }
+
+    startExtracting(async () => {
+      setHasAttemptedScan(true);
+      setIsEditingSource(false);
+      const res = await extractLearningsAction({ notes: notesInput });
+
+      if (res.success && res.data) {
+        const items: EditableLearningItem[] = res.data.learnings.map((l, idx) => ({
+          ...l,
+          id: `learning-${idx}-${Date.now()}`,
+          selected: true,
+        }));
+        setLearnings(items);
+        setWarningMessage(res.warning || null);
+        if (items.length === 0) {
+          toast.info('Tidak ada pembelajaran baru yang terdeteksi dari catatan.');
+        } else {
+          toast.success(`${items.length} materi pembelajaran berhasil diekstrak!`);
+        }
+      } else {
+        toast.error(res.error || 'Gagal mengekstrak pembelajaran.');
+      }
+    });
+  };
 
   const toggleSelect = (id: string) => {
     setLearnings((prev) =>
@@ -78,10 +196,10 @@ export function LearningExtractionModal({
     );
   };
 
-  const updateLearningField = (
+  const updateLearningField = <K extends keyof ExtractedLearningItem>(
     id: string,
-    field: keyof ExtractedLearningItem,
-    value: string,
+    field: K,
+    value: ExtractedLearningItem[K],
   ) => {
     setLearnings((prev) =>
       prev.map((l) => (l.id === id ? { ...l, [field]: value } : l)),
@@ -121,7 +239,7 @@ export function LearningExtractionModal({
       if (successCount > 0) {
         toast.success(`${successCount} pembelajaran berhasil ditambahkan ke katalog!`);
         onSuccess?.();
-        onOpenChange(false);
+        handleOpenChange(false);
       }
       if (failCount > 0) {
         toast.error(`${failCount} materi gagal disimpan.`);
@@ -129,8 +247,10 @@ export function LearningExtractionModal({
     });
   };
 
+  const showResults = learnings.length > 0 && !isEditingSource;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl border-border bg-card text-card-foreground rounded-[28px] p-6 sm:p-7 shadow-2xl">
         <DialogHeader>
           <div className="flex items-center gap-3">
@@ -142,7 +262,7 @@ export function LearningExtractionModal({
                 Ekstrak Pembelajaran dari Catatan
               </DialogTitle>
               <DialogDescription className="text-xs font-medium text-muted-foreground mt-0.5">
-                AI mengidentifikasi konsep baru, teknologi, dan keterampilan yang dipelajari. Simpan langsung ke katalog belajarmu.
+                AI mengidentifikasi konsep baru, teknologi, dan keterampilan yang dipelajari untuk disimpan ke katalog riwayat kompetensi magang.
               </DialogDescription>
             </div>
           </div>
@@ -163,19 +283,19 @@ export function LearningExtractionModal({
             <p className="text-xs font-bold text-foreground">Menganalisis catatan dan mengekstrak pembelajaran...</p>
             <p className="text-[11px] text-muted-foreground">Memetakan teknologi, konsep baru, dan bukti pemahaman.</p>
           </div>
-        ) : learnings.length === 0 ? (
-          <div className="rounded-[24px] border border-dashed border-border bg-secondary/30 p-10 text-center space-y-2">
-            <Info className="size-8 text-muted-foreground mx-auto" />
-            <p className="text-sm font-extrabold text-foreground">Tidak ada pembelajaran yang terdeteksi</p>
-            <p className="text-xs text-muted-foreground">
-              Pastikan catatan mencantumkan teknologi baru, konsep teknis, atau wawasan yang dipelajari.
-            </p>
-          </div>
-        ) : (
+        ) : showResults ? (
+          /* RESULT VIEW */
           <div className="space-y-3.5 py-2">
             <div className="flex items-center justify-between text-xs font-mono font-bold text-muted-foreground">
-              <span>{learnings.length} PEMBELAJARAN DITEMUKAN</span>
-              <span className="text-foreground">{selectedCount} TERPILIH</span>
+              <span className="text-foreground">{learnings.length} PEMBELAJARAN DITEMUKAN · {selectedCount} TERPILIH</span>
+              <button
+                type="button"
+                onClick={() => setIsEditingSource(true)}
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-bold"
+              >
+                <ArrowLeft className="size-3.5" />
+                <span>Ubah Catatan Sumber</span>
+              </button>
             </div>
 
             <div className="space-y-3">
@@ -217,9 +337,22 @@ export function LearningExtractionModal({
                             placeholder="Teknologi (misal: Next.js)"
                             className="flex-1 rounded-full border border-border bg-secondary/40 px-3.5 py-1.5 text-xs font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
                           />
-                          <span className="rounded-full bg-secondary border border-border px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-foreground shrink-0">
-                            {item.level}
-                          </span>
+                          <select
+                            value={item.level}
+                            onChange={(e) =>
+                              updateLearningField(
+                                item.id,
+                                'level',
+                                e.target.value as ExtractedLearningItem['level'],
+                              )
+                            }
+                            className="rounded-full border border-border bg-secondary/80 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
+                          >
+                            <option value="exploring">Exploring</option>
+                            <option value="learning">Learning</option>
+                            <option value="practicing">Practicing</option>
+                            <option value="confident">Confident</option>
+                          </select>
                         </div>
                       </div>
 
@@ -245,19 +378,101 @@ export function LearningExtractionModal({
               ))}
             </div>
           </div>
+        ) : (
+          /* INPUT VIEW */
+          <div className="space-y-4 py-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label
+                htmlFor="learning-extraction-notes"
+                className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider"
+              >
+                Catatan / Sumber Pembelajaran
+              </label>
+              <button
+                type="button"
+                onClick={handleManualLoadJournal}
+                disabled={isFetchingContext}
+                className="inline-flex items-center gap-1.5 text-xs text-[#4A240E] dark:text-[#FDBA74] font-bold hover:underline self-start sm:self-auto disabled:opacity-50"
+              >
+                {isFetchingContext ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Memuat Jurnal...</span>
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="size-3.5" />
+                    <span>Muat dari Jurnal Hari Ini</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <textarea
+              id="learning-extraction-notes"
+              value={notesInput}
+              onChange={(e) => setNotesInput(e.target.value)}
+              placeholder="Ketik atau tempel ringkasan materi, framework/tools baru yang dipelajari, catatan sesi mentoring teknis, atau klik 'Muat dari Jurnal Hari Ini'..."
+              rows={6}
+              className="w-full rounded-2xl border border-border bg-secondary/30 p-4 text-xs font-normal text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs leading-relaxed"
+            />
+
+            {hasAttemptedScan && learnings.length === 0 && (
+              <div className="rounded-[20px] border border-amber-500/30 bg-amber-500/10 dark:bg-amber-950/20 p-4 flex items-start gap-3">
+                <Info className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="text-xs space-y-1">
+                  <p className="font-extrabold text-foreground">Tidak ada materi pembelajaran yang terdeteksi</p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    AI tidak menemukan penyebutan teknologi, konsep teknis, atau keterampilan spesifik dalam catatan di atas. Coba sebutkan nama framework, bahasa pemrograman, atau materi yang kamu pelajari.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="text-[11px] text-muted-foreground">
+                {notesInput.trim() ? (
+                  <span>{notesInput.trim().length} karakter terisi</span>
+                ) : (
+                  <span>Tempel catatan atau muat dari jurnal hari ini</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {learnings.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingSource(false)}
+                    className="inline-flex items-center justify-center rounded-full border border-border bg-secondary/60 px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary active:scale-95 transition-all shadow-2xs"
+                  >
+                    Lihat Hasil Pembelajaran ({learnings.length})
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleExtract}
+                  disabled={isExtracting || !notesInput.trim()}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#4A240E] dark:bg-[#FDBA74] px-5 py-2.5 text-xs font-bold text-white dark:text-[#2D1B0E] hover:bg-[#683515] dark:hover:bg-[#FED7AA] active:scale-95 transition-all shadow-xs disabled:opacity-50"
+                >
+                  <Sparkles className="size-3.5" />
+                  <span>{hasAttemptedScan ? 'Pindai Ulang Pembelajaran' : 'Pindai & Ekstrak Pembelajaran'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-border pt-4 mt-2">
           <button
             type="button"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             disabled={isSaving}
             className="w-full sm:w-auto inline-flex items-center justify-center rounded-full border border-border bg-secondary/60 px-5 py-2.5 text-xs font-bold text-foreground hover:bg-secondary active:scale-95 transition-all shadow-2xs disabled:opacity-50"
           >
-            Batal
+            Tutup
           </button>
 
-          {learnings.length > 0 && (
+          {showResults && (
             <button
               type="button"
               onClick={handleSaveSelected}
