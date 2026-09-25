@@ -303,6 +303,59 @@ describe('GeminiProvider', () => {
     expect(result.model).toBe('gemini-3.7-flash');
   });
 
+  it('automatically falls back to next model when model gets 503 high demand', async () => {
+    const provider = new GeminiProvider({
+      apiKey: 'test-key',
+      defaultModel: 'gemini-3.8-flash',
+      fallbackModels: ['gemini-3.7-flash'],
+    });
+
+    global.fetch = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('gemini-3.8-flash')) {
+        return {
+          ok: false,
+          status: 503,
+          statusText: 'Service Unavailable',
+          text: async () =>
+            JSON.stringify({
+              error: {
+                message:
+                  'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.',
+              },
+            }),
+        } as Response;
+      }
+
+      return {
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      greeting: 'Halo dari fallback setelah 503!',
+                      points: [],
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      } as Response;
+    });
+
+    const result = await provider.generateStructuredOutput({
+      prompt: 'test 503 fallback',
+      schema: testSchema,
+    });
+
+    expect(result.data.greeting).toBe('Halo dari fallback setelah 503!');
+    expect(result.model).toBe('gemini-3.7-flash');
+  });
+
   it('throws rate limit error when all models in fallback chain fail with 429', async () => {
     const provider = new GeminiProvider({
       apiKey: 'test-key',

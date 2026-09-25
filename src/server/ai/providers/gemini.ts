@@ -27,8 +27,9 @@ interface GeminiResponse {
 
 export const DEFAULT_GEMINI_FALLBACK_MODELS = [
   'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-3-flash-preview',
+  'gemini-3.5-flash',
 ];
 
 export class GeminiProvider implements AIProvider {
@@ -85,21 +86,27 @@ export class GeminiProvider implements AIProvider {
           throw err;
         }
 
-        const isRateLimit =
+        const isEligibleForFallback =
           err instanceof AIError &&
-          (err.code === 'RATE_LIMIT' || err.statusCode === 429);
-        const isModelUnavailable =
-          err instanceof AIError &&
-          (err.statusCode === 404 || err.message.toLowerCase().includes('not found'));
+          (err.code === 'RATE_LIMIT' ||
+            err.statusCode === 429 ||
+            err.statusCode === 404 ||
+            err.statusCode >= 500 ||
+            err.message.toLowerCase().includes('not found') ||
+            err.message.toLowerCase().includes('high demand') ||
+            err.message.toLowerCase().includes('spikes in demand') ||
+            err.message.toLowerCase().includes('overloaded') ||
+            err.message.toLowerCase().includes('unavailable') ||
+            err.message.toLowerCase().includes('lonjakan'));
 
         const hasNextModel = i < candidateModels.length - 1;
 
-        if ((isRateLimit || isModelUnavailable) && hasNextModel) {
+        if (isEligibleForFallback && hasNextModel) {
           const nextModel = candidateModels[i + 1];
           console.warn(
-            `[GeminiProvider] Model "${currentModel}" ${
-              isRateLimit ? 'terkena rate limit (429)' : 'tidak tersedia'
-            }. Otomatis beralih ke model berikutnya: "${nextModel}"...`,
+            `[GeminiProvider] Model "${currentModel}" mengalami kendala (${
+              err instanceof Error ? err.message : 'error'
+            }). Otomatis beralih ke model berikutnya: "${nextModel}"...`,
           );
           continue;
         }
@@ -111,8 +118,9 @@ export class GeminiProvider implements AIProvider {
 
     throw (
       lastError ||
-      AIError.rateLimit(
-        `Layanan asisten AI sedang sibuk atau telah mencapai batas kuota harian. Silakan coba beberapa saat lagi.`,
+      AIError.provider(
+        `Layanan asisten AI sedang mengalami lonjakan beban sementara. Silakan coba kembali dalam beberapa saat.`,
+        503,
       )
     );
   }
@@ -201,6 +209,19 @@ export class GeminiProvider implements AIProvider {
       }
       if (response.status === 400 && errorMessage.toLowerCase().includes('safety')) {
         throw AIError.safety(`Konten diblokir oleh filter keamanan: ${errorMessage}`);
+      }
+      if (
+        response.status === 503 ||
+        response.status === 502 ||
+        response.status === 504 ||
+        errorMessage.toLowerCase().includes('high demand') ||
+        errorMessage.toLowerCase().includes('spikes in demand') ||
+        errorMessage.toLowerCase().includes('overloaded')
+      ) {
+        throw AIError.provider(
+          `Layanan asisten AI sedang mengalami lonjakan permintaan tinggi: ${errorMessage}`,
+          503,
+        );
       }
 
       throw AIError.provider(errorMessage, response.status);

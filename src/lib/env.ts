@@ -19,7 +19,7 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
   GEMINI_FALLBACK_MODELS: z.string().default(
-    'gemini-2.5-flash,gemini-2.0-flash,gemini-1.5-flash',
+    'gemini-2.5-flash,gemini-3.5-flash-lite,gemini-3-flash-preview,gemini-3.5-flash',
   ),
   AI_FEATURES_ENABLED: z.coerce.boolean().default(true),
   AI_DAILY_REQUEST_LIMIT: z.coerce.number().default(50),
