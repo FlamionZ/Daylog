@@ -14,6 +14,7 @@ import {
   Compass,
   AlertCircle,
   Copy,
+  ExternalLink,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +31,7 @@ import { BlockerAdvisorModal } from '@/features/ai/components/blocker-advisor-mo
 import { DailyReflectionModal } from '@/features/ai/components/daily-reflection-modal';
 import { KemnakerChecklistModal } from './kemnaker-checklist-modal';
 import { KemnakerGuideBanner } from './kemnaker-guide-banner';
+import { KemnakerExportModal } from './kemnaker-export-modal';
 import type { JournalSuggestion } from '@/server/ai/prompts/journal';
 import type { DailyReflection } from '@/server/ai/prompts/daily-reflection';
 
@@ -66,6 +68,7 @@ export function JournalEditor({
   const [isBlockerModalOpen, setIsBlockerModalOpen] = React.useState(false);
   const [isReflectionModalOpen, setIsReflectionModalOpen] = React.useState(false);
   const [isKemnakerModalOpen, setIsKemnakerModalOpen] = React.useState(false);
+  const [isExportMonevOpen, setIsExportMonevOpen] = React.useState(false);
 
 
   const defaultTaskIds = React.useMemo(() => {
@@ -155,11 +158,22 @@ export function JournalEditor({
       startTransition(async () => {
         const result = await saveJournal({ ...data, status: targetStatus });
         if (result.success) {
-          toast.success(result.message);
           setLastSaved(new Date().toLocaleTimeString('id-ID'));
           const returnedData = result.data as { id?: string } | undefined;
           if (returnedData?.id) {
             form.setValue('id', returnedData.id);
+          }
+          if (targetStatus === 'completed') {
+            toast.success('Jurnal selesai disimpan!', {
+              description: 'Siap diekspor ke portal Monev Kemnaker.',
+              action: {
+                label: 'Kirim ke Monev',
+                onClick: () => setIsExportMonevOpen(true),
+              },
+            });
+            setIsExportMonevOpen(true);
+          } else {
+            toast.success(result.message);
           }
           onSuccess?.();
         } else {
@@ -272,12 +286,23 @@ export function JournalEditor({
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <button
             type="button"
+            onClick={() => setIsExportMonevOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 shadow-2xs hover:bg-blue-500/20 active:scale-95 transition-all cursor-pointer"
+            title="Kirim dan sinkronkan laporan ke portal Monev MagangHub Kemnaker"
+          >
+            <ExternalLink className="size-3.5" />
+            <span className="hidden sm:inline">Kirim ke Monev</span>
+            <span className="sm:hidden">Monev</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleCopyKemnakerFormat}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-bold text-foreground shadow-2xs hover:bg-muted/15 transition-all"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-bold text-foreground shadow-2xs hover:bg-muted/15 transition-all"
             title="Salin teks laporan siap paste ke portal MagangHub Kemnaker"
           >
             <Copy className="size-3.5" />
-            <span className="hidden sm:inline">Salin Format Kemnaker</span>
+            <span className="hidden sm:inline">Salin Format</span>
             <span className="sm:hidden">Salin</span>
           </button>
 
@@ -383,6 +408,20 @@ export function JournalEditor({
           handleSave('completed');
         }}
         isPending={isPending}
+      />
+
+      {/* Kemnaker 3-Field Export Modal */}
+      <KemnakerExportModal
+        open={isExportMonevOpen}
+        onOpenChange={setIsExportMonevOpen}
+        data={{
+          activities: currentActivities,
+          learnings: currentLearnings,
+          blockers: currentBlockers,
+          solutions: currentSolutions,
+          summary: currentSummary,
+          journalDate: journalDateValue,
+        }}
       />
 
       {/* Form Body */}
