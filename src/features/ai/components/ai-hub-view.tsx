@@ -371,7 +371,6 @@ export function AIHubView() {
         open={reflectionModalOpen}
         onOpenChange={setReflectionModalOpen}
         date={today}
-        summary="Aktivitas magang hari ini"
       />
 
       <TaskExtractionModal

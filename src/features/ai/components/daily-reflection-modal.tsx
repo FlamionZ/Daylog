@@ -6,11 +6,13 @@ import {
   Compass,
   Loader2,
   Check,
+  Copy,
   HeartHandshake,
   Scale,
   Brain,
   Forward,
   AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import {
   Dialog,
@@ -20,6 +22,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { generateDailyReflectionAction } from '../actions/ai-actions';
 import type { DailyReflection } from '@/server/ai/prompts/daily-reflection';
 
@@ -27,7 +30,7 @@ interface DailyReflectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: string;
-  summary: string;
+  summary?: string;
   learnings?: string;
   blockers?: string;
   activities?: string;
@@ -38,38 +41,52 @@ export function DailyReflectionModal({
   open,
   onOpenChange,
   date,
-  summary,
+  summary: propSummary = '',
   learnings,
   blockers,
   activities,
   onApplyReflection,
 }: DailyReflectionModalProps) {
+  const [customSummary, setCustomSummary] = React.useState<string>('');
   const [isGenerating, startGenerating] = React.useTransition();
   const [reflection, setReflection] = React.useState<DailyReflection | null>(null);
   const [warningMessage, setWarningMessage] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
 
-  // Auto generate if open and reflection is null
-  React.useEffect(() => {
-    if (open && summary.trim() && !reflection) {
-      startGenerating(async () => {
-        const res = await generateDailyReflectionAction({
-          date,
-          summary,
-          learnings,
-          blockers,
-          activities,
-        });
+  const effectiveSummary = customSummary.trim() || (propSummary && propSummary !== 'Aktivitas magang hari ini' ? propSummary.trim() : '');
 
-        if (res.success && res.data) {
-          setReflection(res.data);
-          setWarningMessage(res.warning || null);
-          toast.success('Refleksi harian Gibbs berhasil disusun!');
-        } else {
-          toast.error(res.error || 'Gagal menyusun refleksi.');
-        }
-      });
+  const handleGenerate = (textToUse?: string) => {
+    const text = textToUse ?? effectiveSummary;
+    if (!text.trim()) {
+      toast.error('Tuliskan ringkasan aktivitas atau pengalaman yang kamu alami hari ini.');
+      return;
     }
-  }, [open, summary, date, learnings, blockers, activities, reflection]);
+
+    startGenerating(async () => {
+      const res = await generateDailyReflectionAction({
+        date,
+        summary: text.trim(),
+        learnings,
+        blockers,
+        activities,
+      });
+
+      if (res.success && res.data) {
+        setReflection(res.data);
+        setWarningMessage(res.warning || null);
+        toast.success('Refleksi harian Gibbs berhasil disusun!');
+      } else {
+        toast.error(res.error || 'Gagal menyusun refleksi.');
+      }
+    });
+  };
+
+  // Auto generate if open and a real summary is provided from journal editor
+  React.useEffect(() => {
+    if (open && propSummary && propSummary.trim() && propSummary !== 'Aktivitas magang hari ini' && !reflection) {
+      handleGenerate(propSummary);
+    }
+  }, [open, propSummary]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleApplyClick = () => {
     if (!reflection) return;
@@ -78,6 +95,41 @@ export function DailyReflectionModal({
       toast.success('Hasil refleksi diterapkan ke jurnal!');
     }
     onOpenChange(false);
+  };
+
+  const handleCopyAll = async () => {
+    if (!reflection) return;
+    const formatted = [
+      `=== REFLEKSI HARIAN GIBBS (${date}) ===`,
+      `1. Apa yang Terjadi (Deskripsi):`,
+      reflection.description,
+      ``,
+      `2. Tantangan & Dinamika Emosional:`,
+      reflection.feelingsAndChallenges,
+      ``,
+      `3. Evaluasi (Keberhasilan vs Peningkatan):`,
+      reflection.evaluation,
+      ``,
+      `4. Analisis & Pembelajaran Mendalam:`,
+      reflection.analysis,
+      ``,
+      `5. Rencana Aksi (Besok):`,
+      reflection.actionPlan,
+    ].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(formatted);
+      setCopied(true);
+      toast.success('Seluruh refleksi berhasil disalin!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Gagal menyalin refleksi.');
+    }
+  };
+
+  const handleReset = () => {
+    setReflection(null);
+    setCustomSummary('');
   };
 
   return (
@@ -93,7 +145,7 @@ export function DailyReflectionModal({
                 Refleksi Harian (Gibbs Reflective Cycle)
               </DialogTitle>
               <DialogDescription className="text-xs font-medium text-muted-foreground mt-0.5">
-                Panduan refleksi terstruktur untuk mengevaluasi pengalaman, memetik hikmah, dan merancang perbaikan esok hari.
+                Panduan refleksi 5 tahap untuk mengevaluasi pengalaman nyata, dinamika emosi kerja, dan menyusun perbaikan esok hari.
               </DialogDescription>
             </div>
           </div>
@@ -115,15 +167,72 @@ export function DailyReflectionModal({
             <p className="text-[11px] text-muted-foreground">Menganalisis dinamika aktivitas, emosi, dan rencana aksi.</p>
           </div>
         ) : !reflection ? (
-          <div className="rounded-[24px] border border-dashed border-border bg-secondary/30 p-10 text-center space-y-2">
-            <Compass className="size-8 text-muted-foreground mx-auto" />
-            <p className="text-sm font-extrabold text-foreground">Belum ada refleksi</p>
-            <p className="text-xs text-muted-foreground">
-              Pastikan jurnal memiliki ringkasan aktivitas harian untuk memulai refleksi terarah.
-            </p>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="reflection-notes" className="text-xs font-extrabold text-foreground">
+                Ceritakan Singkat Pengalaman atau Aktivitas Hari Ini
+              </Label>
+              <textarea
+                id="reflection-notes"
+                rows={4}
+                placeholder="Contoh: Hari ini mengerjakan modul autentikasi, sempat stuck 2 jam mencari bug token expired tapi akhirnya selesai setelah membaca dokumentasi dan diskusi dengan senior..."
+                value={customSummary}
+                onChange={(e) => setCustomSummary(e.target.value)}
+                className="w-full rounded-[18px] border border-border bg-secondary/30 px-4 py-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all leading-relaxed"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                AI akan memetakan pengalaman aslimu ke dalam 5 tahap refleksi Gibbs (fakta peristiwa, dinamika emosi, evaluasi kerja, hikmah/analisis, dan rencana aksi esok hari).
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => handleGenerate()}
+                disabled={!effectiveSummary || isGenerating}
+                className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-xs font-bold hover:bg-primary/90 active:scale-95 transition-all shadow-xs disabled:opacity-50"
+              >
+                <Compass className="size-3.5" />
+                <span>Mulai Refleksi Gibbs</span>
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-3.5 py-2 text-xs">
+            {/* Header Action Bar */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[11px] font-semibold text-muted-foreground font-mono">
+                Hasil Siklus Refleksi Gibbs
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[11px] font-bold text-foreground hover:bg-secondary active:scale-95 transition-all shadow-2xs inline-flex items-center gap-1"
+                >
+                  <RotateCcw className="size-3" />
+                  <span>Ubah Input</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyAll}
+                  className="rounded-full border border-border bg-secondary/40 px-3 py-1 text-[11px] font-bold text-foreground hover:bg-secondary active:scale-95 transition-all shadow-2xs inline-flex items-center gap-1"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="size-3 text-emerald-600 stroke-[2.5]" />
+                      <span>Tersalin</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-3" />
+                      <span>Salin Semua</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* 1. Description */}
             <div className="rounded-[22px] border border-border bg-card p-4.5 space-y-1.5 shadow-2xs">
               <span className="font-extrabold text-foreground block text-xs">
