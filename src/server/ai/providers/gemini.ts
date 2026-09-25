@@ -112,7 +112,7 @@ export class GeminiProvider implements AIProvider {
     throw (
       lastError ||
       AIError.rateLimit(
-        `Semua model Gemini (${candidateModels.join(' -> ')}) telah mencapai batas kuota.`,
+        `Layanan asisten AI sedang sibuk atau telah mencapai batas kuota harian. Silakan coba beberapa saat lagi.`,
       )
     );
   }
@@ -162,7 +162,7 @@ export class GeminiProvider implements AIProvider {
         throw AIError.timeout(timeoutMs);
       }
       throw AIError.provider(
-        err instanceof Error ? err.message : 'Koneksi ke Gemini gagal',
+        err instanceof Error ? err.message : 'Koneksi ke layanan AI gagal',
         503,
         err,
       );
@@ -183,11 +183,11 @@ export class GeminiProvider implements AIProvider {
       }
 
       if (response.status === 401 || response.status === 403) {
-        throw AIError.auth(`Otentikasi Gemini gagal: ${errorMessage}`);
+        throw AIError.auth(`Otentikasi layanan AI gagal: ${errorMessage}`);
       }
       if (response.status === 429) {
         throw AIError.rateLimit(
-          `Rate limit Gemini terlampaui untuk model ${model}: ${errorMessage}`,
+          `Batas kuota layanan AI terlampaui: ${errorMessage}`,
         );
       }
       if (
@@ -211,16 +211,16 @@ export class GeminiProvider implements AIProvider {
     // Check candidate and safety finish reason
     const candidate = data.candidates?.[0];
     if (!candidate) {
-      throw AIError.invalidOutput('Tidak ada respons yang dihasilkan oleh Gemini.');
+      throw AIError.invalidOutput('Tidak ada respons yang dihasilkan oleh asisten AI.');
     }
 
     if (candidate.finishReason === 'SAFETY') {
-      throw AIError.safety('Output ditolak oleh kebijakan keamanan konten Gemini.');
+      throw AIError.safety('Output ditolak oleh kebijakan keamanan konten asisten AI.');
     }
 
     const rawText = candidate.content?.parts?.[0]?.text || '';
     if (!rawText.trim()) {
-      throw AIError.invalidOutput('Respons kosong diterima dari Gemini.');
+      throw AIError.invalidOutput('Respons kosong diterima dari asisten AI.');
     }
 
     // Extract and validate JSON

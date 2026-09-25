@@ -65,7 +65,6 @@ import {
   clearUserAIHistory,
   type UserAIPreferences,
 } from '@/server/ai/services/preferences-service';
-import { env } from '@/lib/env';
 import { AIError } from '@/server/ai/errors/ai-error';
 
 export interface GenerateJournalSuggestionInput {
@@ -852,8 +851,8 @@ export async function getAIUsageStatsAction(): Promise<ActionResult<AIUsageStats
       data: {
         usage,
         preferences,
-        provider: env.AI_PROVIDER,
-        model: env.GEMINI_MODEL,
+        provider: 'AI Cloud',
+        model: 'AI Copilot',
       },
     };
   } catch (err: unknown) {

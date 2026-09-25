@@ -112,9 +112,9 @@ export function AISettingsCard({ initialStats }: AISettingsCardProps) {
               </div>
               <CardTitle className="text-lg font-extrabold text-foreground">Asisten Magang AI</CardTitle>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-secondary/40 border border-border px-2.5 py-0.5 text-xs font-bold text-foreground font-mono">
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary/40 border border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
               <Zap className="size-3 text-amber-500 fill-amber-500" />
-              <span>{stats?.model || 'gemini-2.5-flash'}</span>
+              <span>AI Copilot</span>
             </span>
           </div>
           <CardDescription className="text-xs text-muted-foreground">
@@ -193,8 +193,8 @@ export function AISettingsCard({ initialStats }: AISettingsCardProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-muted-foreground pt-2">
             <div className="rounded-[18px] border border-border bg-secondary/30 p-3.5">
-              <span className="block font-extrabold text-foreground mb-1">Penyedia AI Aktif</span>
-              <span>{stats?.provider === 'gemini' ? 'Google Gemini REST API' : stats?.provider || 'Mock Provider (Offline)'}</span>
+              <span className="block font-extrabold text-foreground mb-1">Status Layanan AI</span>
+              <span>Terhubung & Aktif</span>
             </div>
             <div className="rounded-[18px] border border-border bg-secondary/30 p-3.5">
               <span className="block font-extrabold text-foreground mb-1">Reset Kuota</span>

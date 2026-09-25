@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Daylog — Internship Companion',
     short_name: 'Daylog',
     description:
-      'Aplikasi pendamping magang: catat absensi Monev Kemnaker, jurnal harian, tugas, dan asistensi AI Gemini.',
+      'Aplikasi pendamping magang: catat absensi Monev Kemnaker, jurnal harian, tugas, dan asistensi AI Copilot.',
     start_url: '/dashboard',
     id: '/dashboard',
     scope: '/',
@@ -53,7 +53,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: 'Asisten AI',
         short_name: 'AI Hub',
-        description: 'Bantuan Gemini AI untuk jurnal & blocker',
+        description: 'Bantuan AI Copilot untuk jurnal & blocker',
         url: '/assistant',
         icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
       },

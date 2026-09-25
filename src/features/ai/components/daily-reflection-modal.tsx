@@ -111,7 +111,7 @@ export function DailyReflectionModal({
             <div className="flex size-12 items-center justify-center rounded-2xl bg-[#BCE8D3] dark:bg-[#1A3329] text-[#163A2B] dark:text-[#34D399]">
               <Loader2 className="size-6 animate-spin stroke-[2.5]" />
             </div>
-            <p className="text-xs font-bold text-foreground">Menyusun refleksi mendalam dengan Gemini...</p>
+            <p className="text-xs font-bold text-foreground">Menyusun refleksi mendalam dengan Asisten AI...</p>
             <p className="text-[11px] text-muted-foreground">Menganalisis dinamika aktivitas, emosi, dan rencana aksi.</p>
           </div>
         ) : !reflection ? (

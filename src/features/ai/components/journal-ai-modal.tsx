@@ -81,7 +81,7 @@ export function JournalAIModal({
       if (res.success && res.data) {
         setSuggestion(res.data);
         setWarningMessage(res.warning || null);
-        toast.success('Draf jurnal 4 poin berhasil disusun oleh Gemini!');
+        toast.success('Draf jurnal 4 poin berhasil disusun oleh Asisten AI!');
       } else {
         toast.error(res.error || 'Gagal menyusun jurnal.');
       }
@@ -157,7 +157,7 @@ export function JournalAIModal({
           </div>
 
           <div className="rounded-[16px] bg-primary/10 border border-primary/20 p-3">
-            <span className="font-bold text-primary block mb-1 text-[11px] uppercase tracking-wider font-mono">Saran Gemini:</span>
+            <span className="font-bold text-primary block mb-1 text-[11px] uppercase tracking-wider font-mono">Saran AI:</span>
             <p className="whitespace-pre-wrap text-foreground font-medium leading-relaxed">
               {suggestedText.trim() || <span className="italic text-muted-foreground">(Tidak ada saran)</span>}
             </p>
@@ -177,7 +177,7 @@ export function JournalAIModal({
             </div>
             <div>
               <DialogTitle className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
-                Bantu Tulis Jurnal dengan Gemini AI
+                Bantu Tulis Jurnal dengan Asisten AI
               </DialogTitle>
               <DialogDescription className="text-xs font-medium text-muted-foreground mt-0.5">
                 Masukkan catatan kasar aktivitas magang. AI akan menyusunnya ke format resmi 4 poin Monev Kemnaker RI.
@@ -237,7 +237,7 @@ export function JournalAIModal({
             <div className="rounded-[20px] bg-secondary/30 border border-border p-3.5 text-xs text-muted-foreground flex items-center gap-2.5 shadow-2xs">
               <Info className="size-4 text-primary shrink-0" />
               <span className="font-medium">
-                Tinjau saran Gemini di bawah ini. Terapkan seluruh field sekaligus atau pilih field tertentu.
+                Tinjau saran AI di bawah ini. Terapkan seluruh field sekaligus atau pilih field tertentu.
               </span>
             </div>
 

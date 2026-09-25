@@ -120,7 +120,7 @@ export function AppSidebar() {
               </div>
               {item.highlight && !isActive && (
                 <span className="rounded-full bg-[#DED8FA] dark:bg-[#2D2544] px-2 py-0.5 text-[9px] font-extrabold text-[#2B1E4A] dark:text-[#A78BFA] uppercase tracking-wider">
-                  Gemini
+                  AI Copilot
                 </span>
               )}
             </Link>

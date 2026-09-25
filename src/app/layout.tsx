@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: '%s — Daylog',
   },
   description:
-    'Aplikasi pendamping magang: catat absensi Monev Kemnaker, jurnal harian, tugas, dan asistensi AI Gemini.',
+    'Aplikasi pendamping magang: catat absensi Monev Kemnaker, jurnal harian, tugas, dan asistensi AI Copilot.',
   applicationName: 'Daylog',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
