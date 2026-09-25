@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { OnboardingModal } from '@/features/onboarding/components/onboarding-modal';
 import { TaskFormModal } from '@/features/tasks/components/task-form-modal';
+import { TaskDetailModal } from '@/features/tasks/components/task-detail-modal';
 import { LearningFormModal } from '@/features/learnings/components/learning-form-modal';
 
 // Daylog Playful Bento Components
@@ -75,10 +76,17 @@ export function DashboardView({
   const router = useRouter();
   const [onboardingOpen, setOnboardingOpen] = React.useState(false);
   const [taskModalOpen, setTaskModalOpen] = React.useState(false);
+  const [selectedTaskId, setSelectedTaskId] = React.useState<string | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = React.useState(false);
   const [learningModalOpen, setLearningModalOpen] = React.useState(false);
   const [checkInOpen, setCheckInOpen] = React.useState(false);
   const [checkOutOpen, setCheckOutOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
+
+  const selectedTask = React.useMemo(() => {
+    if (!selectedTaskId) return null;
+    return tasks.find((t) => t.id === selectedTaskId) || null;
+  }, [tasks, selectedTaskId]);
 
   // Setup Supabase Realtime for live updates on data changes
   React.useEffect(() => {
@@ -143,6 +151,7 @@ export function DashboardView({
 
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault();
+        setSelectedTaskId(null);
         setTaskModalOpen(true);
       } else if (e.key === 'l' || e.key === 'L') {
         e.preventDefault();
@@ -219,7 +228,13 @@ export function DashboardView({
   const weekString = `Minggu ${String(weekNumber).padStart(2, '0')}`;
   const dateString = formatDate(new Date(), 'EEEE, d MMM');
 
-  const activeTask = tasks.find((t) => t.status === 'in_progress') || tasks[0] || null;
+  const activeTask =
+    tasks.find((t) => t.status === 'in_progress') ||
+    tasks.find((t) => t.status === 'todo') ||
+    tasks.find((t) => t.status === 'review') ||
+    tasks.find((t) => t.status !== 'done') ||
+    tasks[0] ||
+    null;
   const latestJournal = journals[0] || null;
   const completedJournalsThisWeek = journals.filter(
     (j) => j.status === 'completed',
@@ -314,7 +329,10 @@ export function DashboardView({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => setTaskModalOpen(true)}
+                onClick={() => {
+                  setSelectedTaskId(null);
+                  setTaskModalOpen(true);
+                }}
                 className="flex items-center gap-2 cursor-pointer"
               >
                 <ListTodo className="size-4 text-blue-500" />
@@ -338,8 +356,14 @@ export function DashboardView({
         <div className="md:col-span-2 lg:col-span-8">
           <DaylogFocusCard
             activeTask={activeTask}
-            onOpenTasks={() => setTaskModalOpen(true)}
-            onCreateTask={() => setTaskModalOpen(true)}
+            onOpenTask={(task) => {
+              setSelectedTaskId(task.id);
+              setDetailModalOpen(true);
+            }}
+            onCreateTask={() => {
+              setSelectedTaskId(null);
+              setTaskModalOpen(true);
+            }}
           />
         </div>
         <div className="md:col-span-2 lg:col-span-4">
@@ -361,8 +385,14 @@ export function DashboardView({
         <div className="md:col-span-1 lg:col-span-4">
           <DaylogActiveTasksCard
             tasks={tasks}
-            onOpenTasks={() => setTaskModalOpen(true)}
-            onCreateTask={() => setTaskModalOpen(true)}
+            onSelectTask={(task) => {
+              setSelectedTaskId(task.id);
+              setDetailModalOpen(true);
+            }}
+            onCreateTask={() => {
+              setSelectedTaskId(null);
+              setTaskModalOpen(true);
+            }}
           />
         </div>
         <div className="md:col-span-2 lg:col-span-4">
@@ -454,6 +484,18 @@ export function DashboardView({
       <TaskFormModal
         open={taskModalOpen}
         onOpenChange={setTaskModalOpen}
+        task={selectedTask}
+        onSuccess={() => router.refresh()}
+      />
+      <TaskDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        task={selectedTask}
+        onEdit={(task) => {
+          setSelectedTaskId(task.id);
+          setDetailModalOpen(false);
+          setTaskModalOpen(true);
+        }}
         onSuccess={() => router.refresh()}
       />
       <LearningFormModal

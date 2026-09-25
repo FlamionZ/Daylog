@@ -8,12 +8,14 @@ import { Plus, ListTodo } from 'lucide-react';
 
 interface DaylogActiveTasksCardProps {
   tasks?: TaskRecord[];
+  onSelectTask?: (task: TaskRecord) => void;
   onOpenTasks?: () => void;
   onCreateTask?: () => void;
 }
 
 export function DaylogActiveTasksCard({
   tasks = [],
+  onSelectTask,
   onOpenTasks,
   onCreateTask,
 }: DaylogActiveTasksCardProps) {
@@ -46,12 +48,6 @@ export function DaylogActiveTasksCard({
         {tasks.length > 0 && (
           <Link
             href="/tasks"
-            onClick={(e) => {
-              if (onOpenTasks) {
-                e.preventDefault();
-                onOpenTasks();
-              }
-            }}
             className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
           >
             Lihat semua ({tasks.length})
@@ -65,7 +61,18 @@ export function DaylogActiveTasksCard({
           {activeTasks.map((item, idx) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-3 text-xs"
+              onClick={() => onSelectTask?.(item)}
+              role={onSelectTask ? 'button' : undefined}
+              tabIndex={onSelectTask ? 0 : undefined}
+              onKeyDown={(e) => {
+                if (onSelectTask && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  onSelectTask(item);
+                }
+              }}
+              className={`flex items-center justify-between gap-3 text-xs p-1.5 -mx-1.5 rounded-xl transition-colors ${
+                onSelectTask ? 'hover:bg-muted/15 cursor-pointer focus:outline-hidden focus:ring-1 focus:ring-primary/40' : ''
+              }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <span
