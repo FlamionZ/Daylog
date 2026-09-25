@@ -17,9 +17,9 @@ const envSchema = z.object({
   // AI Configuration
   AI_PROVIDER: z.enum(['gemini', 'mock']).default('gemini'),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
   GEMINI_FALLBACK_MODELS: z.string().default(
-    'gemini-2.5-flash,gemini-3.5-flash-lite,gemini-3-flash-preview,gemini-3.5-flash',
+    'gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite',
   ),
   AI_FEATURES_ENABLED: z.coerce.boolean().default(true),
   AI_DAILY_REQUEST_LIMIT: z.coerce.number().default(50),
