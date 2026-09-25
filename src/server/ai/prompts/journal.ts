@@ -47,7 +47,7 @@ ATURAN KETAT:
 2. Ditulis dengan jelas dan bermakna, BUKAN sekadar satu atau dua kata (hindari entri terlalu singkat seperti hanya "coding" atau "meeting").
 3. Pertahankan istilah teknis dalam bahasa aslinya (misal: "refactoring", "state management", "unit testing", "pull request", "middleware").
 4. HANYA gunakan fakta dari konteks yang diberikan pengguna. DILARANG KERAS mengarang tugas, teknologi, hasil, atau pencapaian yang tidak disebutkan.
-5. Jika catatan pengguna tidak menyebutkan hal yang dipelajari (learnings), kendala (blockers), atau solusi (solutions), ISIKAN DENGAN STRING KOSONG (""). JANGAN PERNAH MENGARANG FAKTA.
+5. Untuk pembelajaran (learnings): Karena portal Monev Kemnaker mewajibkan kolom pembelajaran diisi minimal 100 karakter, formulasikan intisari pembelajaran, pemahaman teknis, pemahaman alur kerja, atau soft skills (seperti adaptasi, kolaborasi tim, komunikasi) yang relevan secara nyata dari aktivitas yang dilaporkan pengguna. Jangan biarkan kosong jika terdapat aktivitas yang dapat dipetik pembelajarannya. Untuk kendala (blockers) dan solusi (solutions), jika tidak ada kendala yang dialami, isikan dengan string kosong (""). DILARANG KERAS mengarang fakta di luar konteks. JANGAN PERNAH MENGARANG FAKTA.
 6. Format aktivitas (activities) harus berupa poin-poin dengan tanda strip (-).
 7. Jangan menambahkan klaim bahwa jurnal ini telah disetujui atau dievaluasi oleh pembimbing/mentor.
 8. Output WAJIB dalam format JSON yang valid sesuai skema yang diminta.`;
