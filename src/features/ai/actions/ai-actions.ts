@@ -58,6 +58,7 @@ import {
 } from '@/server/ai/prompts/daily-reflection';
 import { hasSensitiveData, redactText } from '@/server/ai/safety/redactor';
 import { checkDailyLimit, recordUsage, type UsageStatus } from '@/server/ai/usage/usage-service';
+import { todayInJakarta } from '@/lib/date';
 import {
   recordAIGeneration,
   getUserAIPreferences,
@@ -740,6 +741,10 @@ export interface GenerateDailyReflectionInput {
   learnings?: string;
   blockers?: string;
   activities?: string;
+  tasksDone?: string[];
+  tasksInProgress?: string[];
+  attendanceInfo?: string;
+  userNotes?: string;
 }
 
 export async function generateDailyReflectionAction(
@@ -819,6 +824,151 @@ export async function generateDailyReflectionAction(
     return {
       success: false,
       error: err instanceof Error ? err.message : 'Gagal menghasilkan refleksi harian.',
+    };
+  }
+}
+
+export interface TodayReflectionContext {
+  date: string;
+  hasJournal: boolean;
+  journal?: {
+    summary: string;
+    activities: string;
+    learnings: string;
+    blockers: string;
+    solutions: string;
+    nextPlan: string;
+  };
+  tasksDone: string[];
+  tasksInProgress: string[];
+  attendanceInfo?: string;
+  hasAnyData: boolean;
+}
+
+export async function getTodayReflectionContextAction(
+  dateParam?: string,
+): Promise<ActionResult<TodayReflectionContext>> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: 'Kamu harus masuk terlebih dahulu.' };
+    }
+
+    const targetDate = dateParam || todayInJakarta();
+
+    // 1. Fetch active internship
+    const { data: internship } = await supabase
+      .from('internships')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (!internship) {
+      return {
+        success: true,
+        data: {
+          date: targetDate,
+          hasJournal: false,
+          tasksDone: [],
+          tasksInProgress: [],
+          hasAnyData: false,
+        },
+      };
+    }
+
+    // 2. Fetch Journal for target date
+    const { data: journalData } = await supabase
+      .from('journals')
+      .select('summary, activities, learnings, blockers, solutions, next_plan')
+      .eq('internship_id', internship.id)
+      .eq('journal_date', targetDate)
+      .maybeSingle();
+
+    // 3. Fetch Tasks
+    const { data: tasksData } = await supabase
+      .from('tasks')
+      .select('title, status, completed_at, updated_at')
+      .eq('internship_id', internship.id);
+
+    const tasksDone: string[] = [];
+    const tasksInProgress: string[] = [];
+
+    if (tasksData) {
+      for (const t of tasksData) {
+        if (t.status === 'done') {
+          const completedDate = t.completed_at ? t.completed_at.slice(0, 10) : '';
+          const updatedDate = t.updated_at ? t.updated_at.slice(0, 10) : '';
+          if (completedDate === targetDate || updatedDate === targetDate) {
+            tasksDone.push(t.title);
+          }
+        } else if (t.status === 'in_progress' || t.status === 'review') {
+          tasksInProgress.push(t.title);
+        }
+      }
+    }
+
+    // 4. Fetch Attendance for target date
+    const { data: attendanceData } = await supabase
+      .from('attendance_records')
+      .select('work_mode, check_in_at, check_out_at')
+      .eq('internship_id', internship.id)
+      .eq('work_date', targetDate)
+      .maybeSingle();
+
+    let attendanceInfo: string | undefined;
+    if (attendanceData) {
+      const mode = attendanceData.work_mode?.toUpperCase() || 'HADIR';
+      const checkIn = attendanceData.check_in_at
+        ? new Date(attendanceData.check_in_at).toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Jakarta',
+          })
+        : '-';
+      const checkOut = attendanceData.check_out_at
+        ? new Date(attendanceData.check_out_at).toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Jakarta',
+          })
+        : 'Belum check-out';
+      attendanceInfo = `${mode} (Masuk: ${checkIn}, Pulang: ${checkOut})`;
+    }
+
+    const hasJournal = !!journalData && (!!journalData.summary?.trim() || !!journalData.activities?.trim());
+    const hasAnyData = hasJournal || tasksDone.length > 0 || tasksInProgress.length > 0 || !!attendanceInfo;
+
+    return {
+      success: true,
+      data: {
+        date: targetDate,
+        hasJournal,
+        journal: journalData
+          ? {
+              summary: journalData.summary || '',
+              activities: journalData.activities || '',
+              learnings: journalData.learnings || '',
+              blockers: journalData.blockers || '',
+              solutions: journalData.solutions || '',
+              nextPlan: journalData.next_plan || '',
+            }
+          : undefined,
+        tasksDone,
+        tasksInProgress,
+        attendanceInfo,
+        hasAnyData,
+      },
+    };
+  } catch (err: unknown) {
+    console.error('getTodayReflectionContextAction error:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Gagal memuat konteks data hari ini.',
     };
   }
 }

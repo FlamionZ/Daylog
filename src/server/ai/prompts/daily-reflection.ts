@@ -34,20 +34,42 @@ ATURAN KETAT:
 3. Hindari kalimat klise atau motivasi murahan; berikan wawasan yang relevan dengan realitas kerja software engineering.
 4. Output WAJIB dalam format JSON yang valid sesuai skema: { "description": "...", "feelingsAndChallenges": "...", "evaluation": "...", "analysis": "...", "actionPlan": "..." }.`;
 
-export function buildDailyReflectionPrompt(params: {
+export interface BuildDailyReflectionParams {
   date: string;
   summary: string;
   learnings?: string;
   blockers?: string;
   activities?: string;
-}): string {
+  tasksDone?: string[];
+  tasksInProgress?: string[];
+  attendanceInfo?: string;
+  userNotes?: string;
+}
+
+export function buildDailyReflectionPrompt(params: BuildDailyReflectionParams): string {
   const parts: string[] = [
     `Tanggal Aktivitas: ${params.date}`,
-    `Ringkasan Pekerjaan Hari Ini:\n"""\n${params.summary.trim()}\n"""`,
+    `Ringkasan / Catatan Utama Hari Ini:\n"""\n${params.summary.trim()}\n"""`,
   ];
 
+  if (params.attendanceInfo) {
+    parts.push(`Informasi Presensi / Jam Kerja Hari Ini:\n${params.attendanceInfo}`);
+  }
+
+  if (params.tasksDone && params.tasksDone.length > 0) {
+    parts.push(
+      `Tugas / To-Do List yang Telah Diselesaikan Hari Ini:\n${params.tasksDone.map((t) => `- ${t}`).join('\n')}`,
+    );
+  }
+
+  if (params.tasksInProgress && params.tasksInProgress.length > 0) {
+    parts.push(
+      `Tugas Sedang Dikerjakan / Dalam Proses:\n${params.tasksInProgress.map((t) => `- ${t}`).join('\n')}`,
+    );
+  }
+
   if (params.activities && params.activities.trim()) {
-    parts.push(`Daftar Aktivitas:\n${params.activities.trim()}`);
+    parts.push(`Aktivitas Terperinci dari Jurnal:\n${params.activities.trim()}`);
   }
 
   if (params.learnings && params.learnings.trim()) {
@@ -55,11 +77,15 @@ export function buildDailyReflectionPrompt(params: {
   }
 
   if (params.blockers && params.blockers.trim()) {
-    parts.push(`Kendala / Hambatan yang Dirasakan:\n${params.blockers.trim()}`);
+    parts.push(`Kendala / Hambatan yang Dihadapi:\n${params.blockers.trim()}`);
+  }
+
+  if (params.userNotes && params.userNotes.trim()) {
+    parts.push(`Catatan Emosional / Dinamika Tambahan:\n"""\n${params.userNotes.trim()}\n"""`);
   }
 
   parts.push(
-    `Berdasarkan pengalaman di atas, susunlah refleksi harian terstruktur (description, feelingsAndChallenges, evaluation, analysis, actionPlan) dalam format JSON.`,
+    `Berdasarkan data hari ini di atas, susunlah refleksi harian Gibbs terstruktur (description, feelingsAndChallenges, evaluation, analysis, actionPlan) dalam format JSON yang otentik dan membumi.`,
   );
 
   return parts.join('\n\n');
